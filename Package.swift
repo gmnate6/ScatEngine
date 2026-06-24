@@ -5,11 +5,16 @@ import PackageDescription
 
 let package = Package(
     name: "ScatEngine",
+    platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "ScatEngine",
             targets: ["ScatEngine"]
+        ),
+        .executable(
+            name: "scat",
+            targets: ["ScatCLI"]
         ),
     ],
     targets: [
@@ -17,6 +22,10 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "ScatEngine"
+        ),
+        .executableTarget(
+            name: "ScatCLI",
+            dependencies: ["ScatEngine"]
         ),
         .testTarget(
             name: "ScatEngineTests",
