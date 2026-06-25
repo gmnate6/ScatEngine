@@ -1,15 +1,15 @@
 import Foundation
 
 struct RoundState {
-    var discardPile: DiscardPile
-    var drawPile: DrawPile
+    var discardPile: Pile
+    var drawPile: Pile
     var currentTurnIndex: Int
     var isKnocked: Bool
     var knockerID: UUID?
     
     init(startingPlayerIndex: Int) {
-        self.discardPile = DiscardPile()
-        self.drawPile = DrawPile()
+        self.discardPile = Pile()
+        self.drawPile = Pile()
         self.currentTurnIndex = startingPlayerIndex
         self.isKnocked = false
         self.knockerID = nil

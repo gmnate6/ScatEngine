@@ -10,6 +10,10 @@ public struct ScatEngine {
     public var topDraw: Card {
         gameState.roundState.drawPile.topCard!
     }
+
+    public var drawPileCount: Int {
+        gameState.roundState.drawPile.count
+    }
     
     public var players: [Player] {
         gameState.players
@@ -17,6 +21,10 @@ public struct ScatEngine {
     
     public var activePlayers: [Player] {
         getActivePlayers(gameState: gameState)
+    }
+    
+    public var currentPlayerIndex: Int {
+        gameState.roundState.currentTurnIndex
     }
     
     public var currentPlayer: Player {
@@ -29,7 +37,7 @@ public struct ScatEngine {
     
     public var knockingPlayer: Player? {
         guard let id = gameState.roundState.knockerID else { return nil }
-        guard let player = getPlayer(id: id) else { fatalError("Knocker not found") }
+        guard let player = player(id: id) else { fatalError("Knocker not found") }
         return player
     }
     
@@ -48,7 +56,7 @@ public struct ScatEngine {
         let playerObjs: [Player] = players.map { name in
             Player(name: name, chips: startingChips)
         }
-        gameState = GameState(rng: SeededGenerator(seed), players: playerObjs)
+        gameState = GameState(rng: SeededGenerator(seed: seed), players: playerObjs)
         dealDeck(gameState: &gameState)
         
         if hasScat(gameState: gameState) {
@@ -56,7 +64,7 @@ public struct ScatEngine {
         }
     }
     
-    public func getPlayer(id: UUID) -> Player? {
+    public func player(id: UUID) -> Player? {
         return gameState.players.first(where: { $0.id == id })
     }
     
@@ -87,10 +95,9 @@ public struct ScatEngine {
             case .drawPile:
                 gameState.players[currentPlayerIndex].addCard(gameState.roundState.drawPile.draw()!)
                 
-                // Reshufle if draw pile is empty
+                // Reshuffle if draw pile is empty
                 if gameState.roundState.drawPile.isEmpty {
-                    // takeAll() is okay because discardPile will be populated with the discard from move
-                    gameState.roundState.drawPile.setCards(gameState.roundState.discardPile.takeAll())
+                    gameState.roundState.drawPile = Pile(cards: gameState.roundState.discardPile.takeAll())
                     gameState.roundState.drawPile.shuffle(using: &gameState.rng)
                 }
             case .discardPile:
@@ -98,16 +105,13 @@ public struct ScatEngine {
             }
 
             // Remove discarded card from hand
-            guard gameState.players[currentPlayerIndex].hasCard(discard) else {
-                throw ScatError.playerDiscardedCardTheyDontHave
-            }
-            gameState.players[currentPlayerIndex].removeCard(discard)
+            try gameState.players[currentPlayerIndex].removeCard(discard)
             
             // Place it on the discard pile
             gameState.roundState.discardPile.add(discard)
             
             // Check for scat
-            if isScat(player: gameState.players[currentPlayerIndex]) {
+            if Scoring.isScat(gameState.players[currentPlayerIndex]) {
                 handleScat(gameState: &gameState)
                 return
             }

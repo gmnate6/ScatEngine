@@ -36,9 +36,10 @@ public struct Player: Identifiable {
         cards.contains(card)
     }
 
-    mutating func removeCard(_ card: Card) {
-        precondition(hasCard(card), "Card is not in the player's cards")
-        let index = cards.firstIndex(of: card)!
+    mutating func removeCard(_ card: Card) throws {
+        guard let index = cards.firstIndex(of: card) else {
+            throw ScatError.playerDiscardedCardTheyDontHave
+        }
         cards.remove(at: index)
     }
     

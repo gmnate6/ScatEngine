@@ -1,7 +1,7 @@
 struct SeededGenerator: RandomNumberGenerator {
     private var state: UInt64
 
-    init(_ seed: UInt64) {
+    init(seed: UInt64) {
         self.state = seed == 0 ? 0x12345678 : seed
     }
 
