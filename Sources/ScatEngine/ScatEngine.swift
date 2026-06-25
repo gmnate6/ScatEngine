@@ -86,7 +86,6 @@ public struct ScatEngine {
         switch move.action {
         case .knock:
             guard !gameState.roundState.isKnocked else { throw ScatError.playerKnockedDuringKnock }
-            gameState.roundState.isKnocked = true
             gameState.roundState.knockerID = gameState.players[currentPlayerIndex].id
             
         case let .drawAndDiscard(source, discard):
@@ -111,7 +110,7 @@ public struct ScatEngine {
             gameState.roundState.discardPile.add(discard)
             
             // Check for scat
-            if Scoring.isScat(gameState.players[currentPlayerIndex]) {
+            if Scoring.isScat(player: gameState.players[currentPlayerIndex]) {
                 handleScat(gameState: &gameState)
                 return
             }

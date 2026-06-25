@@ -19,6 +19,8 @@ func getActivePlayers(gameState: GameState) -> [Player] {
 }
 
 func findNextAlivePlayer(gameState: GameState, currentIndex: Int) -> Int {
+    precondition(getActivePlayers(gameState: gameState).count > 0, "No active players")
+    
     var newIndex = currentIndex
     repeat {
         newIndex = (newIndex + 1) % gameState.players.count
@@ -28,16 +30,16 @@ func findNextAlivePlayer(gameState: GameState, currentIndex: Int) -> Int {
 
 func dealDeck(gameState: inout GameState) {
     let deck = createDeck()
-
-    let activeCount = gameState.players.filter { !$0.isEliminated }.count
+    let activeCount = getActivePlayers(gameState: gameState).count
+    
     precondition(deck.count >= activeCount * 3 + 1, "Not enough cards to deal to \(activeCount) players")
 
     gameState.roundState.drawPile = Pile(cards: deck)
     gameState.roundState.drawPile.shuffle(using: &gameState.rng)
 
     for i in gameState.players.indices {
-        guard !gameState.players[i].isEliminated else { continue }
         gameState.players[i].removeCards()
+        guard !gameState.players[i].isEliminated else { continue }
         for _ in 0..<3 {
             gameState.players[i].addCard(gameState.roundState.drawPile.draw()!)
         }
@@ -48,22 +50,18 @@ func dealDeck(gameState: inout GameState) {
 }
 
 func resolveKnock(gameState: inout GameState) {
-    let currentPlayerIndex = gameState.roundState.currentTurnIndex
-    let currentPlayer = gameState.players[currentPlayerIndex]
+    let knockerIndex = gameState.roundState.currentTurnIndex
+    let knocker = gameState.players[knockerIndex]
 
     precondition(gameState.roundState.isKnocked, "Called resolveKnock when round not in knock state")
-    precondition(currentPlayer.id == gameState.roundState.knockerID, "Called resolveKnock for wrong player")
+    precondition(knocker.id == gameState.roundState.knockerID, "Called resolveKnock for wrong player")
 
-    let knockerIndex = currentPlayerIndex
     let activePlayers = getActivePlayers(gameState: gameState)
     let lowestScore = activePlayers.map { Scoring.score(of: $0) }.min()!
     let losers = activePlayers.filter { Scoring.score(of: $0) == lowestScore }
 
-    if losers.contains(where: { $0.id == gameState.roundState.knockerID }) {
-        // Knocker lost
-        gameState.players[knockerIndex].chips -= 2
-    } else {
-        // Knocker won
+    let knockerWon = !losers.contains(where: { $0.id == gameState.roundState.knockerID })
+    if knockerWon {
         for player in losers {
             if let index = gameState.players.firstIndex(where: { $0.id == player.id }) {
                 gameState.players[index].chips -= 1
@@ -71,17 +69,16 @@ func resolveKnock(gameState: inout GameState) {
                 fatalError("Player \(player.id) not found in game state")
             }
         }
+    } else {
+        gameState.players[knockerIndex].chips -= 2
     }
 
     endRound(gameState: &gameState)
 }
 
 func handleScat(gameState: inout GameState) {
-    let scatSet = Set(gameState.players.indices.filter { Scoring.isScat(gameState.players[$0]) })
-
-    guard !scatSet.isEmpty else {
-        fatalError("handleScat called but no scat exists")
-    }
+    let scatSet = Set(gameState.players.indices.filter { Scoring.isScat(player: gameState.players[$0]) })
+    precondition(!scatSet.isEmpty, "Called handleScat but no scat exists")
 
     for i in gameState.players.indices {
         guard !gameState.players[i].isEliminated else { continue }

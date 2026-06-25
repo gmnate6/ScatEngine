@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Player: Identifiable {
+public struct Player: Identifiable, Equatable {
     public let id: UUID
     public let name: String
     public internal(set) var cards: [Card]

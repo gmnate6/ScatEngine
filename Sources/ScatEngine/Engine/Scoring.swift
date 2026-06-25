@@ -16,16 +16,19 @@ public enum Scoring {
 
     public static func score(of player: Player) -> Int {
         let cards = player.cards
+        
+        precondition(cards.count == 3, "A player must have 3 cards")
+        
         return Suit.allCases.map { suit in
             cards.filter { $0.suit == suit }.map { value(of: $0) }.reduce(0, +)
         }.max() ?? 0
     }
 
-    public static func isScat(_ player: Player) -> Bool {
+    public static func isScat(player: Player) -> Bool {
         score(of: player) == 31
     }
 }
 
 func hasScat(gameState: GameState) -> Bool {
-    gameState.players.contains { Scoring.isScat($0) }
+    gameState.players.contains { Scoring.isScat(player: $0) }
 }

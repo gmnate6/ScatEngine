@@ -5,6 +5,8 @@ struct GameState {
     var roundState: RoundState
     
     init(rng: SeededGenerator, players: [Player]) {
+        precondition(!players.isEmpty)
+        
         self.rng = rng
         self.players = players
         self.startingPlayerIndex = 0
