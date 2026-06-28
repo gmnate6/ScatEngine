@@ -1,0 +1,42 @@
+func resolveKnock(gameState: inout GameState) -> [GameEvent] {
+    precondition(gameState.roundState.isKnocked, "Called resolveKnock when round not in knock state")
+    precondition(gameState.roundState.currentPlayerIndex == gameState.roundState.knockingPlayerIndex, "Called resolveKnock for wrong player")
+
+    let knockerIndex = gameState.roundState.currentPlayerIndex
+    let alivePlayers = alivePlayerIndices(in: gameState)
+
+    let playerScores = alivePlayers.map { index in
+        (index: index, score: Scoring.score(of: gameState.players[index]))
+    }
+
+    let lowestScore = playerScores.map(\.score).min()!
+    let losingPlayers = playerScores.filter { $0.score == lowestScore }.map(\.index)
+    let knockerLost = losingPlayers.contains(knockerIndex)
+
+    var eliminated: [Int] = []
+    let knockResult: GameEvent.KnockResults
+    if knockerLost {
+        // Knocker pays double when they hold the lowest hand
+        gameState.players[knockerIndex].chips -= 2
+        if !gameState.players[knockerIndex].isAlive {
+            eliminated.append(knockerIndex)
+        }
+        knockResult = .knockerLost
+    } else {
+        for loserIndex in losingPlayers {
+            gameState.players[loserIndex].chips -= 1
+            if !gameState.players[loserIndex].isAlive {
+                eliminated.append(loserIndex)
+            }
+        }
+        knockResult = .knockerWon(losers: losingPlayers)
+    }
+
+    var events: [GameEvent] = [
+        .knockResolved(knockerIndex: knockerIndex, results: knockResult)
+    ]
+    if !eliminated.isEmpty {
+        events.append(.playersEliminated(playerIndices: eliminated))
+    }
+    return events
+}

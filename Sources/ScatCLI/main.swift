@@ -6,7 +6,7 @@ import Foundation
 import ScatEngine
 
 // ── Configuration ───────────────────────────────────────────
-let useFixedSeed: Bool = true
+let useFixedSeed: Bool = false
 let doesClear:    Bool = false
 // ── Helpers: terminal ───────────────────────────────────────
 
@@ -212,6 +212,8 @@ var engine = ScatEngine(
     players: ["Nathan", "Chloe"],
     startingChips: 3
 )
+
+_ = engine.startGame()
 
 // Track whether we already printed a knock banner this round
 var knockBannerShown = false

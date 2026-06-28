@@ -82,7 +82,7 @@ public class ScatEngine {
     }
     
     public var isActive: Bool {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        guard gameState.hasStarted else { return false }
         return isGameActive(gameState: gameState)
     }
     
@@ -151,7 +151,6 @@ public class ScatEngine {
         guard isGameActive(gameState: gameState) else { throw ScatError.gameOver }
 
         let currentPlayerIndex = gameState.roundState.currentPlayerIndex
-        let currentPlayer = gameState.players[currentPlayerIndex]
         
         defer {
             assertValidState(gameState: gameState, context: "after makeMove(\(move))")
