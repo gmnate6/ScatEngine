@@ -1,16 +1,20 @@
-struct Pile {
-    private var cards: [Card]
+struct Pile: Codable {
+    var cards: [Card]
 
     var count: Int { cards.count }
     var isEmpty: Bool { cards.isEmpty }
-    var topCard: Card? { cards.last }
+    var topCard: Card {
+        precondition(!cards.isEmpty, "Cannot get topCard from an empty pile")
+        return cards.last!
+    }
 
     init(cards: [Card] = []) {
         self.cards = cards
     }
 
-    mutating func draw() -> Card? {
-        cards.popLast()
+    mutating func draw() -> Card {
+        precondition(!cards.isEmpty, "Can't draw from an empty pile")
+        return cards.popLast()!
     }
 
     mutating func add(_ card: Card) {

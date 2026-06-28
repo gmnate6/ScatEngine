@@ -15,8 +15,9 @@ public enum Scoring {
     }
 
     public static func score(of player: Player) -> Int {
-        let cards = player.cards
+        guard player.isAlive else { return 0 }
         
+        let cards = player.cards
         precondition(cards.count == 3, "A player must have 3 cards")
         
         return Suit.allCases.map { suit in
@@ -25,10 +26,7 @@ public enum Scoring {
     }
 
     public static func isScat(player: Player) -> Bool {
-        score(of: player) == 31
+        guard player.isAlive else { return false }
+        return score(of: player) == 31
     }
-}
-
-func hasScat(gameState: GameState) -> Bool {
-    gameState.players.contains { Scoring.isScat(player: $0) }
 }

@@ -68,41 +68,4 @@ struct ScoringTest {
         p4.addCard(Card(rank: .four, suit: .hearts))
         #expect(!Scoring.isScat(player: p4))
     }
-    
-    @Test
-    func hasScatTest() {
-        let rng = SeededGenerator(seed: 123)
-        
-        var p1 = Player(name: "Test", chips: 3)
-        p1.addCard(Card(rank: .four, suit: .clubs))
-        p1.addCard(Card(rank: .four, suit: .diamonds))
-        p1.addCard(Card(rank: .four, suit: .hearts))
-
-        var gameState = GameState(rng: rng, players: [p1])
-        #expect(!hasScat(gameState: gameState))
-        
-        var p2 = Player(name: "Test", chips: 3)
-        p2.addCard(Card(rank: .ace, suit: .clubs))
-        p2.addCard(Card(rank: .king, suit: .diamonds))
-        p2.addCard(Card(rank: .queen, suit: .hearts))
-        
-        gameState.players.append(p2)
-        #expect(!hasScat(gameState: gameState))
-        
-        var p3 = Player(name: "Test", chips: 3)
-        p3.addCard(Card(rank: .two, suit: .diamonds))
-        p3.addCard(Card(rank: .three, suit: .diamonds))
-        p3.addCard(Card(rank: .four, suit: .diamonds))
-        
-        gameState.players.append(p3)
-        #expect(!hasScat(gameState: gameState))
-        
-        var p4 = Player(name: "Test", chips: 3)
-        p4.addCard(Card(rank: .ace, suit: .clubs))
-        p4.addCard(Card(rank: .king, suit: .clubs))
-        p4.addCard(Card(rank: .queen, suit: .clubs))
-
-        gameState.players.append(p4)
-        #expect(hasScat(gameState: gameState))
-    }
 }

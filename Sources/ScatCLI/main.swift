@@ -6,7 +6,7 @@ import Foundation
 import ScatEngine
 
 // ── Configuration ───────────────────────────────────────────
-let useFixedSeed: Bool = false
+let useFixedSeed: Bool = true
 let doesClear:    Bool = false
 // ── Helpers: terminal ───────────────────────────────────────
 
@@ -117,7 +117,7 @@ func printTurnDisplay(engine: ScatEngine) {
     print(boxLine("PLAYER: \(player.name)"))
     print(boxLine("Chips : \(chipString(player.chips))   Score: \(score)"))
     print(boxDivider())
-    print(boxLine("Draw pile: \(engine.drawPileCount) cards   Discard top: \(cardString(engine.topDiscard))"))
+    print(boxLine("Draw pile: \(engine.drawPileSize) cards   Discard top: \(cardString(engine.topOfDiscardPile))"))
     print(boxDivider())
     print(boxLine("Hand:"))
     for (i, card) in hand.enumerated() {
@@ -136,7 +136,7 @@ func printRoundSummary(engine: ScatEngine, before: [Player]) {
     // `before` is the snapshot of players prior to resolveKnock mutating chips.
     // We compare chips to find who lost one.
     let after  = engine.players
-    let active = engine.activePlayers
+    let alive = engine.alivePlayers
 
     print("")
     banner("── ROUND OVER ──", char: "─")
@@ -167,7 +167,7 @@ func printRoundSummary(engine: ScatEngine, before: [Player]) {
     }
 
     // Remaining active players
-    print("\nStill in the game: \(active.map(\.name).joined(separator: ", "))")
+    print("\nStill in the game: \(alive.map(\.name).joined(separator: ", "))")
     print("")
     waitForEnter()
 }
@@ -209,7 +209,7 @@ let seed: UInt64 = useFixedSeed ? 42 : UInt64.random(in: .min ... .max)
 
 var engine = ScatEngine(
     seed: seed,
-    players: ["Nathan", "Chloe", "Carla", "Colby"],
+    players: ["Nathan", "Chloe"],
     startingChips: 3
 )
 
@@ -241,9 +241,9 @@ while engine.isActive {
 
     if mainChoice == "2" {
         // Knock
-        let move = Move(playerID: engine.currentPlayer.id, action: .knock)
+        let move = Move.knock
         do {
-            try engine.apply(move)
+            try _ = engine.makeMove(move)
         } catch {
             print("Error: \(error). Press Enter.")
             _ = readLine()
@@ -254,12 +254,12 @@ while engine.isActive {
         print("Draw from:")
         let drawChoice = readChoice(from: [
             ("1", "Draw pile"),
-            ("2", "Discard pile  [\(cardString(engine.topDiscard))]")
+            ("2", "Discard pile  [\(cardString(engine.topOfDiscardPile))]")
         ])
         let source: DrawSource = drawChoice == "1" ? .drawPile : .discardPile
 
         // Peek at what they're about to draw
-        let drawnCard: Card = source == .drawPile ? engine.topDraw : engine.topDiscard
+        let drawnCard: Card = source == .drawPile ? engine.topOfDrawPile : engine.topOfDiscardPile
 
         // Show drawn card
         print("")
@@ -280,12 +280,9 @@ while engine.isActive {
                                         prompt: "Which card would you like to discard? (1–\(tempHand.count)):")
         let discardCard = tempHand[discardIdx - 1]
 
-        let move = Move(
-            playerID: engine.currentPlayer.id,
-            action: .drawAndDiscard(source: source, discard: discardCard)
-        )
+        let move = Move.drawAndDiscard(source: source, discard: discardCard)
         do {
-            try engine.apply(move)
+            try _ = engine.makeMove(move)
         } catch {
             print("Error: \(error). Press Enter.")
             _ = readLine()

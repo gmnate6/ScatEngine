@@ -1,10 +1,7 @@
+import Foundation
+
 func isGameActive(gameState: GameState) -> Bool {
     gameState.players.filter { $0.chips > 0 }.count > 1
-}
-
-func getWinner(gameState: GameState) -> Player? {
-    guard !isGameActive(gameState: gameState) else { return nil }
-    return gameState.players.first { $0.chips > 0 }
 }
 
 func createDeck() -> [Card] {
@@ -14,90 +11,210 @@ func createDeck() -> [Card] {
     return deck
 }
 
-func getActivePlayers(gameState: GameState) -> [Player] {
-    gameState.players.filter { !$0.isEliminated }
+func gameHasScat(gameState: GameState) -> Bool {
+    for playerIndex in alivePlayerIndices(in: gameState) {
+        if Scoring.isScat(player: gameState.players[playerIndex]) {
+            return true
+        }
+    }
+    return false
 }
 
-func findNextAlivePlayer(gameState: GameState, currentIndex: Int) -> Int {
-    precondition(getActivePlayers(gameState: gameState).count > 0, "No active players")
+func alivePlayerIndices(in gameState: GameState) -> [Int] {
+    gameState.players.indices.filter { gameState.players[$0].isAlive}
+}
+
+func alivePlayerCount(in gameState: GameState) -> Int {
+    gameState.players.filter { $0.isAlive }.count
+}
+
+func nextAlivePlayerIndex(gameState: GameState, currentIndex: Int) -> Int {
+    precondition(alivePlayerCount(in: gameState) > 0, "No active players")
     
-    var newIndex = currentIndex
+    var index = currentIndex
+    
     repeat {
-        newIndex = (newIndex + 1) % gameState.players.count
-    } while gameState.players[newIndex].isEliminated
-    return newIndex
+        index = (index + 1) % gameState.players.count
+    } while !gameState.players[index].isAlive
+    
+    return index
 }
 
 func dealDeck(gameState: inout GameState) {
     let deck = createDeck()
-    let activeCount = getActivePlayers(gameState: gameState).count
-    
-    precondition(deck.count >= activeCount * 3 + 1, "Not enough cards to deal to \(activeCount) players")
+    let aliveCount = alivePlayerCount(in: gameState)
+
+    precondition(deck.count >= aliveCount * 3 + 1, "Not enough cards to deal to \(aliveCount) players")
 
     gameState.roundState.drawPile = Pile(cards: deck)
     gameState.roundState.drawPile.shuffle(using: &gameState.rng)
 
     for i in gameState.players.indices {
         gameState.players[i].removeCards()
-        guard !gameState.players[i].isEliminated else { continue }
+        guard gameState.players[i].isAlive else { continue }
         for _ in 0..<3 {
-            gameState.players[i].addCard(gameState.roundState.drawPile.draw()!)
+            gameState.players[i].addCard(gameState.roundState.drawPile.draw())
         }
     }
 
     gameState.roundState.discardPile.clear()
-    gameState.roundState.discardPile.add(gameState.roundState.drawPile.draw()!)
+    gameState.roundState.discardPile.add(gameState.roundState.drawPile.draw())
 }
 
-func resolveKnock(gameState: inout GameState) {
-    let knockerIndex = gameState.roundState.currentTurnIndex
-    let knocker = gameState.players[knockerIndex]
-
+func resolveKnock(gameState: inout GameState) -> [GameEvent] {
     precondition(gameState.roundState.isKnocked, "Called resolveKnock when round not in knock state")
-    precondition(knocker.id == gameState.roundState.knockerID, "Called resolveKnock for wrong player")
+    precondition(gameState.roundState.currentPlayerIndex == gameState.roundState.knockingPlayerIndex, "Called resolveKnock for wrong player")
 
-    let activePlayers = getActivePlayers(gameState: gameState)
-    let lowestScore = activePlayers.map { Scoring.score(of: $0) }.min()!
-    let losers = activePlayers.filter { Scoring.score(of: $0) == lowestScore }
+    let knockerIndex = gameState.roundState.currentPlayerIndex
+    let alivePlayers = alivePlayerIndices(in: gameState)
 
-    let knockerWon = !losers.contains(where: { $0.id == gameState.roundState.knockerID })
-    if knockerWon {
-        for player in losers {
-            if let index = gameState.players.firstIndex(where: { $0.id == player.id }) {
-                gameState.players[index].chips -= 1
-            } else {
-                fatalError("Player \(player.id) not found in game state")
+    let playerScores = alivePlayers.map { index in
+        (index: index, score: Scoring.score(of: gameState.players[index]))
+    }
+
+    let lowestScore = playerScores.map(\.score).min()!
+    let losingPlayers = playerScores.filter { $0.score == lowestScore }.map(\.index)
+    let knockerLost = losingPlayers.contains(knockerIndex)
+
+    var eliminated: [Int] = []
+    let knockResult: GameEvent.KnockResults
+    if knockerLost {
+        // Knocker pays double when they hold the lowest hand
+        gameState.players[knockerIndex].chips -= 2
+        if !gameState.players[knockerIndex].isAlive {
+            eliminated.append(knockerIndex)
+        }
+        knockResult = .knockerLost
+    } else {
+        for loserIndex in losingPlayers {
+            gameState.players[loserIndex].chips -= 1
+            if !gameState.players[loserIndex].isAlive {
+                eliminated.append(loserIndex)
             }
         }
-    } else {
-        gameState.players[knockerIndex].chips -= 2
+        knockResult = .knockerWon(losers: losingPlayers)
     }
 
-    endRound(gameState: &gameState)
+    var events: [GameEvent] = [
+        .knockResolved(knockerIndex: knockerIndex, results: knockResult)
+    ]
+    if !eliminated.isEmpty {
+        events.append(.playersEliminated(playerIndices: eliminated))
+    }
+    return events
 }
 
-func handleScat(gameState: inout GameState) {
-    let scatSet = Set(gameState.players.indices.filter { Scoring.isScat(player: gameState.players[$0]) })
-    precondition(!scatSet.isEmpty, "Called handleScat but no scat exists")
+func getScattersIndices(gameState: GameState) -> [Int] {
+    return alivePlayerIndices(in: gameState).filter { Scoring.isScat(player: gameState.players[$0]) }
+}
 
+func handleScat(gameState: inout GameState, onDeal: Bool = false) -> [GameEvent] {
+    let scatters = getScattersIndices(gameState: gameState)
+    precondition(!scatters.isEmpty, "Called handleScat but no scat exists")
+    
+    var events: [GameEvent] = []
+    var losers: [Int] = []
+    var eliminated: [Int] = []
+    
     for i in gameState.players.indices {
-        guard !gameState.players[i].isEliminated else { continue }
-        guard !scatSet.contains(i) else { continue }
+        guard gameState.players[i].isAlive else { continue }
+        guard !scatters.contains(i) else { continue }
+        
         gameState.players[i].chips -= 1
+        losers.append(i)
+        if !gameState.players[i].isAlive {
+            eliminated.append(i)
+        }
     }
-
-    endRound(gameState: &gameState)
+    
+    events.append(.scat(
+        scatters: scatters,
+        losers: losers,
+        onDeal: onDeal
+    ))
+    if !eliminated.isEmpty {
+        events.append(.playersEliminated(playerIndices: eliminated))
+    }
+    
+    return events
 }
 
-func endRound(gameState: inout GameState) {
-    guard isGameActive(gameState: gameState) else { return }
+func startRound(gameState: inout GameState) -> [GameEvent] {
+    assert(isGameActive(gameState: gameState))
 
-    let newIndex = findNextAlivePlayer(gameState: gameState, currentIndex: gameState.startingPlayerIndex)
+    var events: [GameEvent] = []
+    events.append(.roundStarted)
+    
+    dealDeck(gameState: &gameState)
+    events.append(.cardsDealt)
+    
+    if gameHasScat(gameState: gameState) {
+        events.append(contentsOf: handleScat(gameState: &gameState, onDeal: true))
+        events.append(endRound(gameState: &gameState))
+        events.append(contentsOf: startRound(gameState: &gameState))
+    }
+    
+    return events
+}
+
+func endRound(gameState: inout GameState) -> GameEvent {
+    assert(isGameActive(gameState: gameState))
+
+    let newIndex = nextAlivePlayerIndex(gameState: gameState, currentIndex: gameState.startingPlayerIndex)
     gameState.startingPlayerIndex = newIndex
     gameState.roundState = RoundState(startingPlayerIndex: newIndex)
-    dealDeck(gameState: &gameState)
+    
+    return GameEvent.roundEnded
+}
 
-    if hasScat(gameState: gameState) {
-        handleScat(gameState: &gameState)
+func validate(gameState: GameState) throws {
+    guard gameState.players.count >= 2 && gameState.players.count <= 8 else {
+        throw ValidationError.invalidPlayerCount
+    }
+    
+    guard gameState.hasStarted else { return }
+    
+    guard !gameState.roundState.drawPile.isEmpty else {
+        throw ValidationError.emptyDrawPile
+    }
+    
+    guard !gameState.roundState.discardPile.isEmpty else {
+        throw ValidationError.emptyDiscardPile
+    }
+    
+    let allCards: [Card] =
+    gameState.roundState.drawPile.cards +
+    gameState.roundState.discardPile.cards +
+    gameState.players.flatMap(\.cards)
+    
+    let uniqueCards = Set(allCards)
+    
+    let deckSize = 52
+    guard uniqueCards.count == deckSize else {
+        throw ValidationError.invalidDeck
+    }
+    
+    guard gameState.players[gameState.roundState.currentPlayerIndex].isAlive else {
+        throw ValidationError.deadCurrentPlayer
+    }
+    
+    if let knockedPlayerIndex = gameState.roundState.knockingPlayerIndex {
+        guard gameState.players[knockedPlayerIndex].isAlive else {
+            throw ValidationError.deadKnockingPlayer
+        }
+    }
+}
+
+func assertValidState(gameState: GameState, context: String = "") {
+    do {
+        try validate(gameState: gameState)
+    } catch {
+        fatalError("""
+        ScatEngine invariant violation
+
+        Context: \(context)
+
+        Error: \(error)
+        """)
     }
 }

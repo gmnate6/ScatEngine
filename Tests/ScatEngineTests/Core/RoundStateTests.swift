@@ -6,9 +6,9 @@ struct RoundStateTests {
     func roundStateInitializesCorrectly() {
         let state = RoundState(startingPlayerIndex: 2)
         
-        #expect(state.currentTurnIndex == 2)
+        #expect(state.currentPlayerIndex == 2)
         #expect(state.isKnocked == false)
-        #expect(state.knockerID == nil)
+        #expect(state.knockingPlayerIndex == nil)
         #expect(state.discardPile.isEmpty)
         #expect(state.drawPile.isEmpty)
     }

@@ -16,57 +16,39 @@ struct RoundEngineTests {
     }
     
     @Test
-    func getWinnerTest() {
-        let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
-        var gameState = GameState(rng: rng, players: [p0, p1])
-
-        #expect(getWinner(gameState: gameState) == nil)
-        
-        gameState.players[0].chips = 0
-        #expect(getWinner(gameState: gameState) == p1)
-        
-        
-        gameState.players[1].chips = 0
-        #expect(getWinner(gameState: gameState) == nil)
-    }
-    
-    @Test
     func createDeckTest() {
         let deck = createDeck()
         #expect(deck.count == 52)
     }
     
     @Test
-    func getActivePlayersTest() {
+    func alivePlayerIndicesTest() {
         let rng = SeededGenerator(seed: 123)
         let p0 = Player(name: "p0", chips: 1)
         let p1 = Player(name: "p1", chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
-        #expect(getActivePlayers(gameState: gameState).count == 2)
+        #expect(alivePlayerIndices(in: gameState).count == 2)
         
         gameState.players[0].chips = 0
-        #expect(getActivePlayers(gameState: gameState).count == 1)
-        #expect(getActivePlayers(gameState: gameState)[0] == p1)
-        
+        #expect(alivePlayerIndices(in: gameState).count == 1)
+        #expect(alivePlayerIndices(in: gameState)[0] == 1)
         
         gameState.players[1].chips = 0
-        #expect(getActivePlayers(gameState: gameState).count == 0)
+        #expect(alivePlayerIndices(in: gameState).count == 0)
     }
     
     @Test
-    func findNextAlivePlayerTest() {
+    func nextAlivePlayerTest() {
         let rng = SeededGenerator(seed: 123)
         let p0 = Player(name: "p0", chips: 1)
         let p1 = Player(name: "p1", chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
-        #expect(findNextAlivePlayer(gameState: gameState, currentIndex: 0) == 1)
+        #expect(nextAlivePlayerIndex(gameState: gameState, currentIndex: 0) == 1)
         
         gameState.players[1].chips = 0
-        #expect(findNextAlivePlayer(gameState: gameState, currentIndex: 0) == 0)
+        #expect(nextAlivePlayerIndex(gameState: gameState, currentIndex: 0) == 0)
     }
     
     @Test
@@ -156,8 +138,8 @@ struct RoundEngineTests {
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
         // Have p0 knock
-        gameState.roundState.knockerID = p0.id
-        gameState.roundState.currentTurnIndex = 0
+        gameState.roundState.knockingPlayerIndex = 0
+        gameState.roundState.currentPlayerIndex = 0
         
         resolveKnock(gameState: &gameState)
         
@@ -188,9 +170,9 @@ struct RoundEngineTests {
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
         // Have p0 knock
-        gameState.roundState.knockerID = p0.id
-        gameState.roundState.currentTurnIndex = 0
-        
+        gameState.roundState.knockingPlayerIndex = 0
+        gameState.roundState.currentPlayerIndex = 0
+
         resolveKnock(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
@@ -220,9 +202,9 @@ struct RoundEngineTests {
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
         // Have p2 knock
-        gameState.roundState.knockerID = p2.id
-        gameState.roundState.currentTurnIndex = 2
-        
+        gameState.roundState.knockingPlayerIndex = 2
+        gameState.roundState.currentPlayerIndex = 2
+
         resolveKnock(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
@@ -252,9 +234,9 @@ struct RoundEngineTests {
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
         // Have p2 knock
-        gameState.roundState.knockerID = p2.id
-        gameState.roundState.currentTurnIndex = 2
-        
+        gameState.roundState.knockingPlayerIndex = 2
+        gameState.roundState.currentPlayerIndex = 2
+
         resolveKnock(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)

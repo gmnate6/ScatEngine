@@ -10,14 +10,12 @@ struct PlayerTests {
         #expect(player.chips == 100)
         #expect(player.cards.isEmpty)
         #expect(player.isAlive)
-        #expect(!player.isEliminated)
     }
     
     @Test
     func playerIsEliminatedAtZeroChips() {
         let player = Player(name: "Nathan", chips: 0)
 
-        #expect(player.isEliminated)
         #expect(!player.isAlive)
     }
     
@@ -28,7 +26,7 @@ struct PlayerTests {
         player.chips = -50
 
         #expect(player.chips == 0)
-        #expect(player.isEliminated)
+        #expect(!player.isAlive)
     }
     
     @Test

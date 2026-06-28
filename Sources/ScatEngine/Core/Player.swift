@@ -1,7 +1,4 @@
-import Foundation
-
-public struct Player: Identifiable, Equatable {
-    public let id: UUID
+public struct Player: Codable {
     public let name: String
     public internal(set) var cards: [Card]
 
@@ -13,16 +10,11 @@ public struct Player: Identifiable, Equatable {
         }
     }
 
-    public var isEliminated: Bool {
-        chips == 0
-    }
-    
     public var isAlive: Bool {
-        !isEliminated
+        chips > 0
     }
 
     init(name: String, chips: Int) {
-        self.id = UUID()
         self.name = name
         self.cards = []
         self.chips = chips
@@ -38,7 +30,7 @@ public struct Player: Identifiable, Equatable {
 
     mutating func removeCard(_ card: Card) throws {
         guard let index = cards.firstIndex(of: card) else {
-            throw ScatError.playerDiscardedCardTheyDontHave
+            throw ScatError.cardNotInHand(card: card)
         }
         cards.remove(at: index)
     }

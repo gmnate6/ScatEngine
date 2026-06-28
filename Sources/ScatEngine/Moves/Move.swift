@@ -1,11 +1,15 @@
-import Foundation
+public enum Move: Equatable, Codable {
+    case drawAndDiscard(source: DrawSource, discard: Card)
+    case knock
+}
 
-public struct Move: Equatable, Codable {
-    public let playerID: UUID
-    public let action: Action
-
-    public init(playerID: UUID, action: Action) {
-        self.playerID = playerID
-        self.action = action
+extension Move: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case let .drawAndDiscard(source, discard):
+            return "Drew from \(source) and discarded \(discard)"
+        case .knock:
+            return "Knocked"
+        }
     }
 }

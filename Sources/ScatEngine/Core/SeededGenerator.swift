@@ -1,4 +1,4 @@
-struct SeededGenerator: RandomNumberGenerator {
+struct SeededGenerator: RandomNumberGenerator, Codable {
     private var state: UInt64
 
     init(seed: UInt64) {

@@ -1,19 +1,17 @@
-import Foundation
-
-struct RoundState {
+struct RoundState: Codable {
     var discardPile: Pile
     var drawPile: Pile
-    var currentTurnIndex: Int
-    var knockerID: UUID?
+    var currentPlayerIndex: Int
+    var knockingPlayerIndex: Int?
     
     var isKnocked: Bool {
-        knockerID != nil
+        knockingPlayerIndex != nil
     }
     
     init(startingPlayerIndex: Int) {
         self.discardPile = Pile()
         self.drawPile = Pile()
-        self.currentTurnIndex = startingPlayerIndex
-        self.knockerID = nil
+        self.currentPlayerIndex = startingPlayerIndex
+        self.knockingPlayerIndex = nil
     }
 }
