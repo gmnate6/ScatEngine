@@ -274,7 +274,4 @@ Every game can be replayed from:
 
 ## License
 
-MIT (or specify your license here)
-
-```
-```
+MIT
