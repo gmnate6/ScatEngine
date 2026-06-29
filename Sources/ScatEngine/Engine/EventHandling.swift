@@ -1,9 +1,40 @@
-func resolveKnock(gameState: inout GameState) -> [GameEvent] {
+func handleScat(gameState: inout GameState, onDeal: Bool = false) -> [GameEvent] {
+    let scatters = GameQueries.scattersIndices(gameState: gameState)
+    precondition(!scatters.isEmpty, "Called handleScat but no scat exists")
+    
+    var events: [GameEvent] = []
+    var losers: [Int] = []
+    var eliminated: [Int] = []
+    
+    for i in gameState.players.indices {
+        guard gameState.players[i].isAlive else { continue }
+        guard !scatters.contains(i) else { continue }
+        
+        gameState.players[i].chips -= 1
+        losers.append(i)
+        if !gameState.players[i].isAlive {
+            eliminated.append(i)
+        }
+    }
+    
+    events.append(.scat(
+        scatters: scatters,
+        losers: losers,
+        onDeal: onDeal
+    ))
+    if !eliminated.isEmpty {
+        events.append(.playersEliminated(playerIndices: eliminated))
+    }
+    
+    return events
+}
+
+func handleKnockResolution(gameState: inout GameState) -> [GameEvent] {
     precondition(gameState.roundState.isKnocked, "Called resolveKnock when round not in knock state")
     precondition(gameState.roundState.currentPlayerIndex == gameState.roundState.knockingPlayerIndex, "Called resolveKnock for wrong player")
 
     let knockerIndex = gameState.roundState.currentPlayerIndex
-    let alivePlayers = alivePlayerIndices(in: gameState)
+    let alivePlayers = GameQueries.alivePlayerIndices(in: gameState)
 
     let playerScores = alivePlayers.map { index in
         (index: index, score: Scoring.score(of: gameState.players[index]))

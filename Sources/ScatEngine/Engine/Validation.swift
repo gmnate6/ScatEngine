@@ -3,7 +3,7 @@ func validate(gameState: GameState) throws {
         throw ValidationError.invalidPlayerCount
     }
     
-    guard gameState.hasStarted else { return }
+    guard gameState.isStarted else { return }
     
     guard !gameState.roundState.drawPile.isEmpty else {
         throw ValidationError.emptyDrawPile
@@ -18,9 +18,11 @@ func validate(gameState: GameState) throws {
     gameState.roundState.discardPile.cards +
     gameState.players.flatMap(\.cards)
     
-    let uniqueCards = Set(allCards)
-    
-    guard uniqueCards.count == Deck.standardCount else {
+    guard allCards.count == Set(allCards).count else {
+        throw ValidationError.invalidDeck
+    }
+
+    guard allCards.count == Deck.standardCount else {
         throw ValidationError.invalidDeck
     }
     
@@ -31,6 +33,12 @@ func validate(gameState: GameState) throws {
     if let knockedPlayerIndex = gameState.roundState.knockingPlayerIndex {
         guard gameState.players[knockedPlayerIndex].isAlive else {
             throw ValidationError.deadKnockingPlayer
+        }
+    }
+    
+    for player in gameState.players {
+        guard player.cards.count == 3 else {
+            throw ValidationError.invalidHandSize
         }
     }
 }

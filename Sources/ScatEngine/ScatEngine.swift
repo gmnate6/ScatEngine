@@ -11,83 +11,89 @@ public class ScatEngine {
     private var gameState: GameState
     
     public var topOfDiscardPile: Card {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.discardPile.topCard
     }
     
     public var topOfDrawPile: Card {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.drawPile.topCard
     }
     
     public var drawPileSize: Int {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.drawPile.count
     }
     
     public var discardPileSize: Int {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.discardPile.count
     }
     
     public var players: [Player] {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.players
     }
     
     public var alivePlayers: [Player] {
-        precondition(gameState.hasStarted, "Must call startGame() first")
-        return alivePlayerIndices(in: gameState).map { gameState.players[$0] }
+        precondition(gameState.isStarted, "Must call startGame() first")
+        return GameQueries.alivePlayerIndices(in: gameState).map { gameState.players[$0] }
     }
     
     public var currentPlayerIndex: Int {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.currentPlayerIndex
     }
     
     public var currentPlayer: Player {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.players[gameState.roundState.currentPlayerIndex]
     }
     
     public var currentPlayerHand: [Card] {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.players[gameState.roundState.currentPlayerIndex].cards
     }
     
     public var canKnock: Bool {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return !gameState.roundState.isKnocked
     }
     
     public var isKnocked: Bool {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.roundState.isKnocked
     }
     
-    public var knockingPlayerIndex: Int? {
-        precondition(gameState.hasStarted, "Must call startGame() first")
-        return gameState.roundState.knockingPlayerIndex
+    public var knockingPlayerIndex: Int {
+        precondition(gameState.isStarted, "Must call startGame() first")
+        precondition(gameState.roundState.isKnocked)
+        return gameState.roundState.knockingPlayerIndex!
     }
     
-    public var winnerIndex: Int? {
-        precondition(gameState.hasStarted, "Must call startGame() first")
-        guard !isGameActive(gameState: gameState) else { return nil }
-        return gameState.players.indices.first { gameState.players[$0].chips > 0 }
+    public var winnerIndex: Int {
+        precondition(gameState.isStarted, "Must call startGame() first")
+        precondition(!GameQueries.isActive(gameState: gameState))
+        return GameQueries.winnerIndex(gameState: gameState)
     }
     
-    public var winner: Player? {
-        precondition(gameState.hasStarted, "Must call startGame() first")
-        return winnerIndex.map { gameState.players[$0] }
+    public var winner: Player {
+        precondition(gameState.isStarted, "Must call startGame() first")
+        precondition(!GameQueries.isActive(gameState: gameState))
+        return gameState.players[GameQueries.winnerIndex(gameState: gameState)]
+    }
+    
+    public var isStarted: Bool {
+        return gameState.isStarted
     }
     
     public var isActive: Bool {
-        guard gameState.hasStarted else { return false }
-        return isGameActive(gameState: gameState)
+        guard gameState.isStarted else { return false }
+        return GameQueries.isActive(gameState: gameState)
     }
     
     public var moveCount: Int {
-        precondition(gameState.hasStarted, "Must call startGame() first")
+        precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.moveCount
     }
 
@@ -136,8 +142,8 @@ public class ScatEngine {
     }
     
     public func startGame() -> [GameEvent] {
-        precondition(!gameState.hasStarted, "Must call startGame() first")
-        gameState.hasStarted = true
+        precondition(!gameState.isStarted, "Must call startGame() first")
+        gameState.isStarted = true
         
         var events: [GameEvent] = []
         
@@ -147,8 +153,8 @@ public class ScatEngine {
     }
     
     public func makeMove(_ move: Move) throws -> [GameEvent] {
-        guard gameState.hasStarted else { throw ScatError.gameNotStarted }
-        guard isGameActive(gameState: gameState) else { throw ScatError.gameOver }
+        guard gameState.isStarted else { throw ScatError.gameNotStarted }
+        guard GameQueries.isActive(gameState: gameState) else { throw ScatError.gameOver }
 
         let currentPlayerIndex = gameState.roundState.currentPlayerIndex
         
@@ -192,20 +198,20 @@ public class ScatEngine {
             // Check for scat
             if Scoring.isScat(player: gameState.players[currentPlayerIndex]) {
                 events.append(contentsOf: handleScat(gameState: &gameState))
-                events.append(endRound(gameState: &gameState))
+                events.append(contentsOf:endRound(gameState: &gameState))
                 return events
             }
         }
         
         // Next player
-        let newIndex = nextAlivePlayerIndex(gameState: gameState, currentIndex: currentPlayerIndex)
+        let newIndex = GameQueries.nextAlivePlayerIndex(gameState: gameState, currentIndex: currentPlayerIndex)
         gameState.roundState.currentPlayerIndex = newIndex
 
         // Check if knock round is over
         let knockRoundOver = gameState.roundState.knockingPlayerIndex == newIndex
         if  knockRoundOver {
-            events.append(contentsOf: resolveKnock(gameState: &gameState))
-            events.append(endRound(gameState: &gameState))
+            events.append(contentsOf: handleKnockResolution(gameState: &gameState))
+            events.append(contentsOf:endRound(gameState: &gameState))
             return events
         }
         

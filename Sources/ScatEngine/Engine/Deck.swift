@@ -9,7 +9,7 @@ enum Deck {
 
 func dealDeck(gameState: inout GameState) {
     let deck = Deck.create()
-    let aliveCount = alivePlayerCount(in: gameState)
+    let aliveCount = GameQueries.alivePlayerCount(in: gameState)
     precondition(deck.count >= aliveCount * 3 + 1, "Not enough cards...")
     
     gameState.roundState.drawPile = Pile(cards: deck)

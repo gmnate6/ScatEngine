@@ -176,7 +176,8 @@ func printGameOver(engine: ScatEngine) {
     clearScreen()
     banner("★  GAME OVER  ★")
     print("")
-    if let winner = engine.winner {
+    if !engine.isActive {
+        let winner = engine.winner
         print("  🏆  Winner: \(winner.name)  🏆")
     }
     print("\nFinal chip counts:")

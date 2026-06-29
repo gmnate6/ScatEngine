@@ -1,5 +1,5 @@
 func startRound(gameState: inout GameState) -> [GameEvent] {
-    assert(isGameActive(gameState: gameState))
+    assert(GameQueries.isActive(gameState: gameState))
 
     var events: [GameEvent] = []
     events.append(.roundStarted)
@@ -7,21 +7,37 @@ func startRound(gameState: inout GameState) -> [GameEvent] {
     dealDeck(gameState: &gameState)
     events.append(.cardsDealt)
     
-    if gameHasScat(gameState: gameState) {
+    if GameQueries.hasScat(gameState: gameState) {
         events.append(contentsOf: handleScat(gameState: &gameState, onDeal: true))
-        events.append(endRound(gameState: &gameState))
+        events.append(contentsOf: endRound(gameState: &gameState))
+        if !GameQueries.isActive(gameState: gameState) {
+            return events
+        }
         events.append(contentsOf: startRound(gameState: &gameState))
     }
     
     return events
 }
 
-func endRound(gameState: inout GameState) -> GameEvent {
-    assert(isGameActive(gameState: gameState))
+func endRound(gameState: inout GameState) -> [GameEvent] {
+    var events: [GameEvent] = []
+    events.append(.roundEnded)
+    
+    guard GameQueries.isActive(gameState: gameState) else {
+        events.append(endGame(gameState: gameState))
+        return events
+    }
 
-    let newIndex = nextAlivePlayerIndex(gameState: gameState, currentIndex: gameState.startingPlayerIndex)
+    let newIndex = GameQueries.nextAlivePlayerIndex(gameState: gameState, currentIndex: gameState.startingPlayerIndex)
     gameState.startingPlayerIndex = newIndex
     gameState.roundState = RoundState(startingPlayerIndex: newIndex)
     
-    return GameEvent.roundEnded
+    return events
+}
+
+func endGame(gameState: GameState) -> GameEvent {
+    precondition(!GameQueries.isActive(gameState: gameState))
+    return .gameEnded(
+        winnerIndex: GameQueries.winnerIndex(gameState: gameState)
+    )
 }
