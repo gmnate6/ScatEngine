@@ -11,19 +11,21 @@ struct ScatEngine_PersistenceTests {
     @Test
     func encodeDecode_roundTrip_preservesState() throws {
         let engine = makeEngine()
-
-        // Do a deterministic move (IMPORTANT: avoid randomness)
+        
+        // Deterministic move selection (important for reproducibility)
         let moves = engine.legalMoves()
         let move = moves.first!
-
+        
         _ = try engine.makeMove(move)
-
-        let data = try engine.encode()
+        
+        // Save + load round trip
+        let data = try engine.makeSaveData()
         let decoded = try ScatEngine(data: data)
-
-        // Compare hashes (best high-level equality check)
-        let originalHash = try engine.stateHash()
-        let decodedHash = try decoded.stateHash()
-
-        #expect(originalHash == decodedHash)    }
+        
+        // Compare deterministic hashes (single source of truth)
+        let originalHash = engine.stateHash()
+        let decodedHash = decoded.stateHash()
+        
+        #expect(originalHash == decodedHash)
+    }
 }
