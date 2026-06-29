@@ -203,7 +203,7 @@ Scoring.isScat(player: player) // == 31
 ### Encode Game State
 
 ```swift
-let data = try engine.encode()
+let data = try engine.makeSaveData()
 ```
 
 ### Restore Game
@@ -215,7 +215,7 @@ let engine = try ScatEngine(data: savedData)
 ### State Hash (Integrity Check)
 
 ```swift
-let hash = try engine.stateHash()
+let hash = engine.stateHash()
 ```
 
 Used for:
