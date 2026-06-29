@@ -3,9 +3,8 @@ enum ValidationError: Error {
     case invalidDeck
     case emptyDrawPile
     case emptyDiscardPile
-    case deadCurrentPlayer
-    case deadKnockingPlayer
     case invalidHandSize
+    case deadCurrentPlayer
 }
 
 extension ValidationError {
@@ -19,12 +18,10 @@ extension ValidationError {
             return "Draw pile is empty"
         case .emptyDiscardPile:
             return "Discard pile is empty"
-        case .deadCurrentPlayer:
-            return "Current player is dead"
-        case .deadKnockingPlayer:
-            return "Knocking player is dead"
         case .invalidHandSize:
             return "Player has an invalid hand size"
+        case .deadCurrentPlayer:
+            return "Current player is dead"
         }
     }
 }

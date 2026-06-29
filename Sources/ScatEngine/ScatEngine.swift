@@ -106,15 +106,7 @@ public class ScatEngine {
     
     public func startGame() -> [GameEvent] {
         precondition(!gameState.isStarted, "Must call startGame() first")
-        gameState.moveNumber = 1
-        gameState.roundNumber = 0
-        gameState.isStarted = true
-        
-        var events: [GameEvent] = []
-        
-        events.append(.gameStarted)
-        events += startRound(gameState: &gameState)
-        return events
+        return GameFlow.startGame(gameState: &gameState)
     }
     
     public func legalMoves() -> [Move] {
@@ -180,7 +172,7 @@ public class ScatEngine {
             // Check for scat
             if Scoring.isScat(player: gameState.players[currentPlayerIndex]) {
                 events.append(contentsOf: handleScat(gameState: &gameState))
-                events.append(contentsOf:endRound(gameState: &gameState))
+                events.append(contentsOf: GameFlow.endRound(gameState: &gameState))
                 return events
             }
         }
@@ -193,7 +185,7 @@ public class ScatEngine {
         let knockRoundOver = gameState.roundState.knockingPlayerIndex == newIndex
         if  knockRoundOver {
             events.append(contentsOf: handleKnockResolution(gameState: &gameState))
-            events.append(contentsOf:endRound(gameState: &gameState))
+            events.append(contentsOf: GameFlow.endRound(gameState: &gameState))
             return events
         }
         

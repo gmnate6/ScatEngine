@@ -26,20 +26,14 @@ func validate(gameState: GameState) throws {
         throw ValidationError.invalidDeck
     }
     
-    guard gameState.players[gameState.roundState.currentPlayerIndex].isAlive else {
-        throw ValidationError.deadCurrentPlayer
-    }
-    
-    if let knockedPlayerIndex = gameState.roundState.knockingPlayerIndex {
-        guard gameState.players[knockedPlayerIndex].isAlive else {
-            throw ValidationError.deadKnockingPlayer
-        }
-    }
-    
-    for player in gameState.players {
-        guard player.cards.count == 3 else {
+    for i in GameQueries.alivePlayerIndices(in: gameState) {
+        guard gameState.players[i].cards.count == 3 else {
             throw ValidationError.invalidHandSize
         }
+    }
+    
+    guard gameState.players[gameState.roundState.currentPlayerIndex].isAlive else {
+        throw ValidationError.deadCurrentPlayer
     }
 }
 

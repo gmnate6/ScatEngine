@@ -43,7 +43,7 @@ public extension ScatEngine {
 
 private extension ScatEngine {
     convenience init(gameState: GameState) {
-        self.init(seed: 0, players: []) // dummy values, will be overwritten
+        self.init(seed: 0, players: ["temp1", "temp2"]) // dummy values, will be overwritten
         self.gameState = gameState
     }
 }
