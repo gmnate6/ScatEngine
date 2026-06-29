@@ -22,7 +22,7 @@ enum GameFlow {
         events.append(.cardsDealt)
         
         if GameQueries.hasScat(gameState: gameState) {
-            events.append(contentsOf: handleScat(gameState: &gameState, onDeal: true))
+            events.append(contentsOf: EventHandlers.handleScat(gameState: &gameState, onDeal: true))
             events.append(contentsOf: endRound(gameState: &gameState))
             if !GameQueries.isActive(gameState: gameState) {
                 return events

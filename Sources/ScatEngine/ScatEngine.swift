@@ -171,7 +171,7 @@ public class ScatEngine {
             
             // Check for scat
             if Scoring.isScat(player: gameState.players[currentPlayerIndex]) {
-                events.append(contentsOf: handleScat(gameState: &gameState))
+                events.append(contentsOf: EventHandlers.handleScat(gameState: &gameState))
                 events.append(contentsOf: GameFlow.endRound(gameState: &gameState))
                 return events
             }
@@ -184,7 +184,7 @@ public class ScatEngine {
         // Check if knock round is over
         let knockRoundOver = gameState.roundState.knockingPlayerIndex == newIndex
         if  knockRoundOver {
-            events.append(contentsOf: handleKnockResolution(gameState: &gameState))
+            events.append(contentsOf: EventHandlers.handleKnockResolution(gameState: &gameState))
             events.append(contentsOf: GameFlow.endRound(gameState: &gameState))
             return events
         }

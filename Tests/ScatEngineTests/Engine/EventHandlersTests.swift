@@ -23,7 +23,7 @@ struct KnockingLogicTests {
         
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
-        _ = handleScat(gameState: &gameState)
+        _ = EventHandlers.handleScat(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 2)
@@ -51,7 +51,7 @@ struct KnockingLogicTests {
         
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
-        _ = handleScat(gameState: &gameState)
+        _ = EventHandlers.handleScat(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 3)
@@ -83,7 +83,7 @@ struct KnockingLogicTests {
         gameState.roundState.knockingPlayerIndex = 0
         gameState.roundState.currentPlayerIndex = 0
         
-        _ = handleKnockResolution(gameState: &gameState)
+        _ = EventHandlers.handleKnockResolution(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 3)
@@ -115,7 +115,7 @@ struct KnockingLogicTests {
         gameState.roundState.knockingPlayerIndex = 0
         gameState.roundState.currentPlayerIndex = 0
 
-        _ = handleKnockResolution(gameState: &gameState)
+        _ = EventHandlers.handleKnockResolution(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 2)
@@ -147,7 +147,7 @@ struct KnockingLogicTests {
         gameState.roundState.knockingPlayerIndex = 2
         gameState.roundState.currentPlayerIndex = 2
 
-        _ = handleKnockResolution(gameState: &gameState)
+        _ = EventHandlers.handleKnockResolution(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 3)
@@ -179,7 +179,7 @@ struct KnockingLogicTests {
         gameState.roundState.knockingPlayerIndex = 2
         gameState.roundState.currentPlayerIndex = 2
 
-        _ = handleKnockResolution(gameState: &gameState)
+        _ = EventHandlers.handleKnockResolution(gameState: &gameState)
         
         #expect(gameState.players[0].chips == 3)
         #expect(gameState.players[1].chips == 3)
