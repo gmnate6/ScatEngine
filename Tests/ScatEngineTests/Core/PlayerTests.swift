@@ -48,7 +48,7 @@ struct PlayerTests {
         let card = Card(rank: Rank.ace, suit: Suit.spades)
 
         player.addCard(card)
-        try player.removeCard(card)
+        player.removeCard(card)
 
         #expect(!player.hasCard(card))
         #expect(player.cards.isEmpty)

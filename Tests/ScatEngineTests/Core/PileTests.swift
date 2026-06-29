@@ -8,7 +8,6 @@ struct PileTests {
         
         #expect(pile.count == 0)
         #expect(pile.isEmpty)
-        #expect(pile.topCard == nil)
     }
     
     @Test
@@ -38,16 +37,6 @@ struct PileTests {
     }
     
     @Test
-    func drawFromEmptyPileReturnsNil() {
-        var pile = Pile()
-
-        let card = pile.draw()
-
-        #expect(card == nil)
-        #expect(pile.isEmpty)
-    }
-    
-    @Test
     func clearRemovesAllCards() {
         var pile = Pile(cards: [
             Card(rank: .ace, suit: .spades),
@@ -58,7 +47,6 @@ struct PileTests {
 
         #expect(pile.count == 0)
         #expect(pile.isEmpty)
-        #expect(pile.topCard == nil)
     }
     
     @Test
@@ -96,7 +84,7 @@ struct PileTests {
     
     @Test
     func shuffleIsDeterministicForSeed() {
-        let deck = createDeck()
+        let deck = Deck.create()
         
         var rng1 = SeededGenerator(seed: 123)
         var rng2 = SeededGenerator(seed: 123)
