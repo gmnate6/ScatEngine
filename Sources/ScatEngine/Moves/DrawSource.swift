@@ -1,4 +1,4 @@
-public enum DrawSource: Equatable, Codable {
+public enum DrawSource: Equatable, Codable, CaseIterable {
     case drawPile
     case discardPile
 }

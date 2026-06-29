@@ -4,7 +4,8 @@ struct GameState: Codable {
     var startingPlayerIndex: Int
     var roundState: RoundState
     var isStarted: Bool
-    var moveCount: Int
+    var moveNumber: Int
+    var roundNumber: Int
     
     init(rng: SeededGenerator, players: [Player]) {
         self.rng = rng
@@ -12,6 +13,7 @@ struct GameState: Codable {
         self.startingPlayerIndex = 0
         self.roundState = RoundState(startingPlayerIndex: self.startingPlayerIndex)
         self.isStarted = false
-        self.moveCount = 0
+        self.moveNumber = 0
+        self.roundNumber = 0
     }
 }

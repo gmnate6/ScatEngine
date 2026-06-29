@@ -28,9 +28,9 @@ public struct Player: Codable {
         cards.contains(card)
     }
 
-    mutating func removeCard(_ card: Card) throws {
+    mutating func removeCard(_ card: Card) {
         guard let index = cards.firstIndex(of: card) else {
-            throw ScatError.cardNotInHand(card: card)
+            fatalError("Attempted to remove card \(card), but it was not in the player's hand.")
         }
         cards.remove(at: index)
     }

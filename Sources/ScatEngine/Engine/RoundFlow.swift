@@ -1,7 +1,8 @@
 func startRound(gameState: inout GameState) -> [GameEvent] {
-    assert(GameQueries.isActive(gameState: gameState))
+    precondition(GameQueries.isActive(gameState: gameState))
 
     var events: [GameEvent] = []
+    gameState.roundNumber += 1
     events.append(.roundStarted)
     
     dealDeck(gameState: &gameState)

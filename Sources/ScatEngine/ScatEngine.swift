@@ -48,7 +48,7 @@ public class ScatEngine {
     
     public var canKnock: Bool {
         precondition(gameState.isStarted, "Must call startGame() first")
-        return !gameState.roundState.isKnocked
+        return MoveRules.canKnock(gameState: gameState)
     }
     
     public var isKnocked: Bool {
@@ -83,9 +83,14 @@ public class ScatEngine {
         return GameQueries.isActive(gameState: gameState)
     }
     
-    public var moveCount: Int {
+    public var moveNumber: Int {
         precondition(gameState.isStarted, "Must call startGame() first")
-        return gameState.moveCount
+        return gameState.moveNumber
+    }
+    
+    public var roundNumber: Int {
+        precondition(gameState.isStarted, "Must call startGame() first")
+        return gameState.moveNumber
     }
 
     public init(seed: UInt64, players: [String], startingChips: Int = 3) {
@@ -101,6 +106,8 @@ public class ScatEngine {
     
     public func startGame() -> [GameEvent] {
         precondition(!gameState.isStarted, "Must call startGame() first")
+        gameState.moveNumber = 1
+        gameState.roundNumber = 0
         gameState.isStarted = true
         
         var events: [GameEvent] = []
@@ -110,23 +117,40 @@ public class ScatEngine {
         return events
     }
     
-    public func makeMove(_ move: Move) throws -> [GameEvent] {
-        guard gameState.isStarted else { throw ScatError.gameNotStarted }
-        guard GameQueries.isActive(gameState: gameState) else { throw ScatError.gameOver }
+    public func legalMoves() -> [Move] {
+        precondition(gameState.isStarted, "Cannot query moves before startGame()")
+        precondition(GameQueries.isActive(gameState: gameState), "Cannot query moves after game over")
+        
+        var moves: [Move] = []
+        
+        // Knocking
+        if MoveRules.canKnock(gameState: gameState) {
+            moves.append(.knock)
+        }
 
+        // Draw and discard
+        for source in DrawSource.allCases {
+            for discard in MoveRules.legalDiscards(for: source, in: gameState) {
+                moves.append(.drawAndDiscard(source: source, discard: discard))
+            }
+        }
+        return moves
+    }
+    
+    public func makeMove(_ move: Move) throws -> [GameEvent] {
+        try MoveRules.validate(move: move, in: gameState)
         let currentPlayerIndex = gameState.roundState.currentPlayerIndex
         
         defer {
             assertValidState(gameState: gameState, context: "after makeMove(\(move))")
         }
         
+        gameState.moveNumber += 1
+        
         var events: [GameEvent] = []
         
         switch move {
         case .knock:
-            guard !gameState.roundState.isKnocked else {
-                throw ScatError.alreadyKnocked
-            }
             gameState.roundState.knockingPlayerIndex = currentPlayerIndex
             events.append(.playerKnocked(playerIndex: currentPlayerIndex))
             
@@ -149,7 +173,7 @@ public class ScatEngine {
             }
 
             // Discard
-            try gameState.players[currentPlayerIndex].removeCard(discard)
+            gameState.players[currentPlayerIndex].removeCard(discard)
             gameState.roundState.discardPile.add(discard)
             events.append(.playerDiscarded(playerIndex: currentPlayerIndex, card: discard))
             
