@@ -8,36 +8,53 @@ public extension ScatEngine {
         let version: Int
         let state: GameState
     }
-    
+
+    private static let deterministicEncoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.dataEncodingStrategy = .base64
+
+        return encoder
+    }()
+
+    private static let deterministicDecoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        return decoder
+    }()
+
     convenience init(data: Data) throws {
-        let file = try JSONDecoder().decode(SaveFile.self, from: data)
-        
-        switch file.version {
-        case Self.currentSaveVersion:
-            self.init(gameState: file.state)
-        default:
+        let file = try Self.deterministicDecoder.decode(SaveFile.self, from: data)
+
+        guard file.version == Self.currentSaveVersion else {
             throw ScatError.unsupportedSaveVersion(version: file.version)
         }
-        
+
+        self.init(gameState: file.state)
+
         try validate(gameState: gameState)
     }
-    
-    func encode() throws -> Data {
+
+    func makeSaveData() throws -> Data {
         let file = SaveFile(
             version: Self.currentSaveVersion,
             state: gameState
         )
-        return try JSONEncoder().encode(file)
+
+        return try Self.deterministicEncoder.encode(file)
     }
-    
-    func stateHash() throws -> String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        
-        let data = try encoder.encode(gameState)
-        
+
+    func stateHash() -> String {
+        guard let data = try? Self.deterministicEncoder.encode(gameState) else {
+            preconditionFailure("GameState is not encodable — engine invariant violated")
+        }
+
         let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
+
+        return digest.reduce(into: "") { result, byte in
+            result += String(format: "%02x", byte)
+        }
     }
 }
 
