@@ -2,13 +2,12 @@ import Foundation
 import CryptoKit
 
 public extension ScatEngine {
-    
+    static let currentSaveVersion = 1
+
     struct SaveFile: Codable {
         let version: Int
         let state: GameState
     }
-    
-    static let currentSaveVersion = 1
     
     convenience init(data: Data) throws {
         let file = try JSONDecoder().decode(SaveFile.self, from: data)
