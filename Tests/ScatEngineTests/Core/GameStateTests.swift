@@ -7,8 +7,8 @@ struct GameStateTests {
         let rng = SeededGenerator(seed: 123)
 
         let players = [
-            Player(name: "A", chips: 100),
-            Player(name: "B", chips: 100)
+            Player(chips: 100),
+            Player(chips: 100)
         ]
 
         let state = GameState(rng: rng, players: players)

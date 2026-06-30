@@ -1,3 +1,5 @@
+import Foundation
+
 public class ScatEngine {
     var gameState: GameState
     
@@ -26,9 +28,8 @@ public class ScatEngine {
         return gameState.players
     }
     
-    public var alivePlayers: [Player] {
-        precondition(gameState.isStarted, "Must call startGame() first")
-        return GameQueries.alivePlayerIndices(in: gameState).map { gameState.players[$0] }
+    public var alivePlayerIndices: [Int] {
+        GameQueries.alivePlayerIndices(in: gameState)
     }
     
     public var currentPlayerIndex: Int {
@@ -39,11 +40,6 @@ public class ScatEngine {
     public var currentPlayer: Player {
         precondition(gameState.isStarted, "Must call startGame() first")
         return gameState.players[gameState.roundState.currentPlayerIndex]
-    }
-    
-    public var currentPlayerHand: [Card] {
-        precondition(gameState.isStarted, "Must call startGame() first")
-        return gameState.players[gameState.roundState.currentPlayerIndex].cards
     }
     
     public var canKnock: Bool {
@@ -58,20 +54,16 @@ public class ScatEngine {
     
     public var knockingPlayerIndex: Int {
         precondition(gameState.isStarted, "Must call startGame() first")
-        precondition(gameState.roundState.isKnocked)
-        return gameState.roundState.knockingPlayerIndex!
+        guard let index = gameState.roundState.knockingPlayerIndex else {
+            preconditionFailure("Not in a knock")
+        }
+        return index
     }
     
     public var winnerIndex: Int {
         precondition(gameState.isStarted, "Must call startGame() first")
         precondition(!GameQueries.isActive(gameState: gameState))
         return GameQueries.winnerIndex(gameState: gameState)
-    }
-    
-    public var winner: Player {
-        precondition(gameState.isStarted, "Must call startGame() first")
-        precondition(!GameQueries.isActive(gameState: gameState))
-        return gameState.players[GameQueries.winnerIndex(gameState: gameState)]
     }
     
     public var isStarted: Bool {
@@ -90,15 +82,15 @@ public class ScatEngine {
     
     public var roundNumber: Int {
         precondition(gameState.isStarted, "Must call startGame() first")
-        return gameState.moveNumber
+        return gameState.roundNumber
     }
-
-    public init(seed: UInt64, players: [String], startingChips: Int = 3) {
-        precondition(players.count >= 2 && players.count <= 8, "Player count must be between 2 and 8, got \(players.count)")
+    
+    public init(seed: UInt64, playerCount: Int, startingChips: Int = 3) {
+        precondition(playerCount >= 2 && playerCount <= 8, "Player count must be between 2 and 8, got \(playerCount)")
         precondition(startingChips > 0, "Starting chips must be greater than 0")
         
-        let playerObjs: [Player] = players.map { name in
-            Player(name: name, chips: startingChips)
+        let playerObjs: [Player] = (0..<playerCount).map { _ in
+            Player(chips: startingChips)
         }
         
         gameState = GameState(rng: SeededGenerator(seed: seed), players: playerObjs)

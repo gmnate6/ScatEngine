@@ -11,9 +11,9 @@ struct DeckTests {
     @Test
     func dealDeck_activePlayersRecieveThreeCards() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
-        let p2 = Player(name: "p2", chips: 0)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
+        let p2 = Player(chips: 0)
         var gameState = GameState(rng: rng, players: [p0, p1, p2])
         
         dealDeck(gameState: &gameState)
@@ -26,8 +26,8 @@ struct DeckTests {
     @Test
     func dealDeck_drawPileHasCorrectRemainingCount() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         dealDeck(gameState: &gameState)
@@ -39,8 +39,8 @@ struct DeckTests {
     @Test
     func dealDeck_discardPileHasExactlyOneCard() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         dealDeck(gameState: &gameState)
@@ -51,7 +51,7 @@ struct DeckTests {
     @Test
     func dealDeck_previousCardsAreReplaced() {
         let rng = SeededGenerator(seed: 42)
-        var p0 = Player(name: "p0", chips: 1)
+        var p0 = Player(chips: 1)
         p0.addCard(Card(rank: .ace, suit: .hearts)) // give p0 a card before dealing
         var gameState = GameState(rng: rng, players: [p0])
         
@@ -63,7 +63,7 @@ struct DeckTests {
     @Test
     func dealDeck_discardPileIsCleared() {
         let rng = SeededGenerator(seed: 42)
-        let p0 = Player(name: "p0", chips: 1)
+        let p0 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0])
         gameState.roundState.discardPile.add(Card(rank: .ace, suit: .hearts))
         gameState.roundState.discardPile.add(Card(rank: .king, suit: .spades))

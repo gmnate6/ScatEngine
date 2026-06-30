@@ -1,28 +1,29 @@
-# ScatEngine - v2.0.0
+# ScatEngine - v2.1.0
 
 A deterministic, rules-complete Swift game engine for **Scat**, a multiplayer card game where players compete to build the best three-card hand of a single suit and race to 31.
 
 ScatEngine is designed to be:
-- Fully **state-driven**
-- **Deterministic** (seeded RNG)
-- UI-agnostic (no rendering logic)
-- Safe via strong invariants and precondition checks
-- Replayable via deterministic event streams and serialized game state
+
+* Fully **state-driven**
+* **Deterministic** (seeded RNG)
+* UI-agnostic (no rendering logic)
+* Safe via strong invariants and precondition checks
+* Replayable via deterministic event streams and serialized game state
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Game Summary](#game-summary)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Core API](#core-api)
-- [Game Flow](#game-flow)
-- [Moves](#moves)
-- [Scoring](#scoring)
-- [Encoding & Decoding](#encoding--decoding)
-- [Design Goals](#design-goals)
+* Overview
+* Game Summary
+* Installation
+* Quick Start
+* Core API
+* Game Flow
+* Moves
+* Scoring
+* Encoding & Decoding
+* Design Goals
 
 ---
 
@@ -30,12 +31,12 @@ ScatEngine is designed to be:
 
 `ScatEngine` is the authoritative rules engine for the Scat card game. It manages:
 
-- Turn order and player state
-- Deck, draw pile, and discard pile
-- Move validation and execution
-- Round and game lifecycle
-- Scoring and win conditions
-- Knock resolution and Scat detection (31)
+* Turn order and player state
+* Deck, draw pile, and discard pile
+* Move validation and execution
+* Round and game lifecycle
+* Scoring and win conditions
+* Knock resolution and Scat detection (31)
 
 The engine emits a stream of `GameEvent`s for UI or networking layers to consume.
 
@@ -46,14 +47,16 @@ The engine emits a stream of `GameEvent`s for UI or networking layers to consume
 Scat is played with 2–8 players using a standard 52-card deck.
 
 Each player:
-- Is dealt **3 cards**
-- Takes turns drawing and discarding
-- Tries to maximize a **single-suit hand score**
-- Can optionally **knock** to trigger final turns
+
+* Is dealt **3 cards**
+* Takes turns drawing and discarding
+* Tries to maximize a **single-suit hand score**
+* Can optionally **knock** to trigger final turns
 
 ### Win Conditions
-- Reach exactly **31 (Scat)** → immediate round win
-- Otherwise, highest score after knock resolution wins
+
+* Reach exactly **31 (Scat)** → immediate round win
+* Otherwise, highest score after knock resolution wins
 
 Players lose chips each round until only one remains.
 
@@ -61,13 +64,13 @@ Players lose chips each round until only one remains.
 
 ## Installation
 
-Add the engine as a Swift package dependency (example):
+Add the engine as a Swift package dependency:
 
 ```swift
 dependencies: [
     .package(url: "https://github.com/gmnate6/ScatEngine", from: "2.0.0")
 ]
-````
+```
 
 ---
 
@@ -76,7 +79,7 @@ dependencies: [
 ```swift
 let engine = ScatEngine(
     seed: 42,
-    players: ["Alice", "Bob", "Charlie"],
+    playerCount: 4,
     startingChips: 3
 )
 
@@ -109,10 +112,17 @@ After `startGame()` is called:
 engine.players
 engine.currentPlayer
 engine.currentPlayerHand
+
+engine.topOfDrawPile
+engine.topOfDiscardPile
+
 engine.drawPileSize
 engine.discardPileSize
-engine.topOfDiscardPile
+
+engine.alivePlayerIndices
 ```
+
+---
 
 ### Game Status
 
@@ -121,7 +131,10 @@ engine.isStarted
 engine.isActive
 engine.isKnocked
 engine.canKnock
+engine.winnerIndex   // only valid when isActive == false
 ```
+
+---
 
 ### Turn Info
 
@@ -142,7 +155,15 @@ engine.roundNumber
    * Query `legalMoves()`
    * Call `makeMove(_:)`
    * Process `GameEvent`s
-4. Repeat until game ends (one player remains)
+4. Repeat until only one player remains
+
+### Knock Phase Behavior
+
+When a player knocks:
+
+* All remaining players receive one final turn
+* The knock initiator does NOT immediately win
+* The round ends after turn order returns to the knocking player
 
 ---
 
@@ -156,11 +177,21 @@ The engine supports two move types:
 .drawAndDiscard(source: DrawSource, discard: Card)
 ```
 
-* Draw from:
+Draw from:
 
-  * `.drawPile`
-  * `.discardPile`
-* Must discard exactly one card
+* `.drawPile`
+* `.discardPile`
+
+Then discard exactly one card.
+
+#### Reshuffle Rule
+
+If the draw pile becomes empty after drawing:
+
+* The discard pile is immediately reshuffled into a new draw pile
+* Then play continues normally
+
+---
 
 ### Knock
 
@@ -168,10 +199,10 @@ The engine supports two move types:
 .knock
 ```
 
-Triggers final round:
+Triggers final round phase:
 
-* All other players get one final turn
-* Then scoring is resolved
+* Remaining players get one final turn each
+* After turn order returns to the knocker, resolution begins
 
 ---
 
@@ -187,14 +218,16 @@ Card values:
 
 ```swift
 Scoring.score(of: player)
-Scoring.isScat(player: player) // == 31
+Scoring.isScat(player: player) // 31
 ```
 
-### Scat (31)
+---
 
-* Instant round win
-* Overrides knock resolution
-* Other players lose chips
+## Scat (31)
+
+* Immediate round win
+* Overrides any active knock
+* Ends the round instantly even if knock was already triggered
 
 ---
 
@@ -212,7 +245,7 @@ let data = try ScatEngineSerializer.encode(engine)
 let engine = try ScatEngineSerializer.decode(data)
 ```
 
-### State Hash (Integrity Check)
+### State Hash
 
 ```swift
 let hash = ScatEngineSerializer.hash(engine)
@@ -220,9 +253,9 @@ let hash = ScatEngineSerializer.hash(engine)
 
 Used for:
 
-* Sync validation
-* Multiplayer reconciliation
-* Debugging desyncs
+* Multiplayer sync validation
+* Replay debugging
+* Determinism verification
 
 ---
 
@@ -230,11 +263,11 @@ Used for:
 
 ### 1. Deterministic Simulation
 
-Given the same seed and moves, the engine always produces identical results.
+Same seed + moves → identical outcomes.
 
 ### 2. Strict State Safety
 
-Invalid operations crash early via `precondition` or throw errors.
+Invalid operations fail fast via preconditions or thrown errors.
 
 ### 3. Event-Driven Output
 
@@ -248,27 +281,36 @@ All meaningful actions emit `GameEvent`s:
 
 ### 4. UI Separation
 
-The engine contains **no UI logic**—only rules and state transitions.
+No rendering logic exists in the engine.
 
 ### 5. Replayability
 
-Every game can be replayed from:
+Games can be fully reconstructed from:
 
 * seed + moves
-* or full encoded state
+* serialized state
 
 ---
 
 ## Key Invariants
 
-* Each active player always has **exactly 3 cards**
-* Only top discard is visible and drawable
+* Each active player always has exactly 3 cards (engine-maintained invariant)
+* Only top discard is visible/drawable
 * Eliminated players remain in turn order but are skipped
-* A round always ends in either:
+* A round ends via:
 
   * Knock resolution
   * Scat (31)
 * Game ends when only one player has chips
+
+---
+
+## Notes on API Safety
+
+* `winnerIndex` is only valid when `isActive == false`
+* `legalMoves()` is only valid during an active game
+* Knock state is included in `legalMoves()` constraints via `MoveRules`
+* Reshuffling occurs immediately after a draw if the draw pile becomes empty
 
 ---
 

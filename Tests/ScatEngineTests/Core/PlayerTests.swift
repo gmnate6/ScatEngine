@@ -4,9 +4,8 @@ import Testing
 struct PlayerTests {
     @Test
     func playerStartsWithExpectedValues() {
-        let player = Player(name: "Nathan", chips: 100)
-
-        #expect(player.name == "Nathan")
+        let player = Player(chips: 100)
+        
         #expect(player.chips == 100)
         #expect(player.cards.isEmpty)
         #expect(player.isAlive)
@@ -14,14 +13,14 @@ struct PlayerTests {
     
     @Test
     func playerIsEliminatedAtZeroChips() {
-        let player = Player(name: "Nathan", chips: 0)
+        let player = Player(chips: 0)
 
         #expect(!player.isAlive)
     }
     
     @Test
     func chipsCannotGoNegative() {
-        var player = Player(name: "Nathan", chips: 100)
+        var player = Player(chips: 100)
 
         player.chips = -50
 
@@ -31,7 +30,7 @@ struct PlayerTests {
     
     @Test
     func addCardAddsCardToHand() {
-        var player = Player(name: "Nathan", chips: 100)
+        var player = Player(chips: 100)
 
         let card = Card(rank: Rank.ace, suit: Suit.spades)
 
@@ -43,7 +42,7 @@ struct PlayerTests {
     
     @Test
     func removeCardRemovesCardFromHand() throws {
-        var player = Player(name: "Nathan", chips: 100)
+        var player = Player(chips: 100)
 
         let card = Card(rank: Rank.ace, suit: Suit.spades)
 
@@ -56,7 +55,7 @@ struct PlayerTests {
     
     @Test
     func removeCardsClearsHand() {
-        var player = Player(name: "Nathan", chips: 100)
+        var player = Player(chips: 100)
 
         player.addCard(Card(rank: .ace, suit: .spades))
         player.addCard(Card(rank: .king, suit: .hearts))

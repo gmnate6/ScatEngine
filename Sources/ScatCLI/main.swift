@@ -1,5 +1,5 @@
 // ============================================================
-// main.swift  –  ScatCLI
+// main.swift  –  ScatCLI (index-based engine version)
 // ============================================================
 
 import Foundation
@@ -8,6 +8,10 @@ import ScatEngine
 // ── Configuration ───────────────────────────────────────────
 let useFixedSeed: Bool = false
 let doesClear:    Bool = false
+
+// ── Local player identity (CLI-only mapping layer) ──────────
+let playerNames = ["Nathan", "Chloe"] // maps to engine indices
+
 // ── Helpers: terminal ───────────────────────────────────────
 
 func clearScreen() {
@@ -20,13 +24,11 @@ func waitForEnter(prompt: String = "Press Enter to continue…") {
     _ = readLine()
 }
 
-/// Reads a line and returns an Int, or nil if invalid.
 func readInt() -> Int? {
     guard let line = readLine()?.trimmingCharacters(in: .whitespaces) else { return nil }
     return Int(line)
 }
 
-/// Keeps prompting until the user enters a valid index from the menu.
 func readChoice(from options: [(key: String, label: String)]) -> String {
     while true {
         for opt in options {
@@ -39,7 +41,6 @@ func readChoice(from options: [(key: String, label: String)]) -> String {
     }
 }
 
-/// Keeps prompting until the user enters an integer in [lo, hi].
 func readIntInRange(lo: Int, hi: Int, prompt: String) -> Int {
     while true {
         print(prompt, terminator: " ")
@@ -85,7 +86,7 @@ func chipString(_ n: Int) -> String {
     n > 0 ? String(repeating: "●", count: n) : "✗ (eliminated)"
 }
 
-// ── Helpers: display ────────────────────────────────────────
+// ── Display box helpers ─────────────────────────────────────
 
 let boxWidth = 52
 
@@ -108,100 +109,81 @@ func banner(_ text: String, char: Character = "═") {
     print(line)
 }
 
+// ── Game display ────────────────────────────────────────────
+
 func printTurnDisplay(engine: ScatEngine) {
-    let player = engine.currentPlayer
-    let score  = Scoring.score(of: player)
-    let hand   = player.cards
+    let index = engine.currentPlayerIndex
+    let player = engine.players[index]
 
     print(boxTop())
-    print(boxLine("PLAYER: \(player.name)"))
-    print(boxLine("Chips : \(chipString(player.chips))   Score: \(score)"))
+    print(boxLine("PLAYER INDEX: \(index)  (\(playerNames[index]))"))
+    print(boxLine("Chips : \(chipString(player.chips))"))
     print(boxDivider())
-    print(boxLine("Draw pile: \(engine.drawPileSize) cards   Discard top: \(cardString(engine.topOfDiscardPile))"))
+    print(boxLine("Draw pile: \(engine.drawPileSize) cards"))
+    print(boxLine("Discard top: \(cardString(engine.topOfDiscardPile))"))
     print(boxDivider())
     print(boxLine("Hand:"))
-    for (i, card) in hand.enumerated() {
-        print(boxLine("  \(i + 1). \(cardString(card))  (\(Scoring.value(of: card)) pts)"))
+
+    for (i, card) in player.cards.enumerated() {
+        print(boxLine("  \(i + 1). \(cardString(card))"))
     }
+
     print(boxBottom())
 }
 
-func printFinalRoundBanner() {
-    print("")
-    banner("⚑  FINAL ROUND  ⚑", char: "═")
-    print("")
-}
-
-func printRoundSummary(engine: ScatEngine, before: [Player]) {
-    // `before` is the snapshot of players prior to resolveKnock mutating chips.
-    // We compare chips to find who lost one.
-    let after  = engine.players
-    let alive = engine.alivePlayers
-
-    print("")
-    banner("── ROUND OVER ──", char: "─")
-
-    // Scores
-    print("\nFinal scores:")
-    for p in before {
-        let score = Scoring.score(of: p)
-        print("  \(p.name.padding(toLength: 10, withPad: " ", startingAt: 0))  \(score) pts")
-    }
-
-    // Who lost chips
-    print("\nResults:")
-    for (old, new) in zip(before, after) {
-        if new.chips < old.chips {
-            print("  \(old.name) lost a chip  (\(old.chips) → \(new.chips))")
-        }
-        if !new.isAlive {
-            print("  \(old.name) has been eliminated!")
-        }
-    }
-
-    // Scoreboard
-    print("\nScoreboard:")
-    for p in after {
-        let status = p.isAlive ? chipString(p.chips) : "ELIMINATED"
-        print("  \(p.name.padding(toLength: 10, withPad: " ", startingAt: 0))  \(status)")
-    }
-
-    // Remaining active players
-    print("\nStill in the game: \(alive.map(\.name).joined(separator: ", "))")
-    print("")
-    waitForEnter()
-}
-
-func printGameOver(engine: ScatEngine) {
-    clearScreen()
-    banner("★  GAME OVER  ★")
-    print("")
-    if !engine.isActive {
-        let winner = engine.winner
-        print("  🏆  Winner: \(winner.name)  🏆")
-    }
-    print("\nFinal chip counts:")
-    for p in engine.players {
-        print("  \(p.name.padding(toLength: 10, withPad: " ", startingAt: 0))  \(chipString(p.chips))")
-    }
-    print("")
-}
-
-// ── Round-end detection ─────────────────────────────────────
-// We detect a round boundary by comparing the round state before and after
-// applying a move. If the current player index resets back to the first
-// alive player AND chips changed (or game over), a new round started.
+// ── Round summary ───────────────────────────────────────────
 
 func snapshotPlayers(_ engine: ScatEngine) -> [Player] {
     engine.players
 }
 
 func roundEnded(before: [Player], after: [Player]) -> Bool {
-    // A round ended when at least one player's chip count changed.
     for (a, b) in zip(before, after) {
         if a.chips != b.chips { return true }
     }
     return false
+}
+
+func printRoundSummary(engine: ScatEngine, before: [Player]) {
+    let after = engine.players
+    let alive = engine.alivePlayerIndices
+
+    banner("── ROUND OVER ──", char: "─")
+
+    print("\nScores:")
+    for (i, p) in before.enumerated() {
+        print("  \(playerNames[i]) → chips: \(p.chips)")
+    }
+
+    print("\nResults:")
+    for (i, (old, new)) in zip(before, after).enumerated() {
+        if new.chips < old.chips {
+            print("  \(playerNames[i]) lost a chip (\(old.chips) → \(new.chips))")
+        }
+        if !new.isAlive {
+            print("  \(playerNames[i]) eliminated!")
+        }
+    }
+
+    print("\nStill in game:")
+    for i in alive {
+        print("  \(playerNames[i])")
+    }
+
+    waitForEnter()
+}
+
+func printGameOver(engine: ScatEngine) {
+    clearScreen()
+    banner("★ GAME OVER ★")
+
+    let winnerIndex = engine.winnerIndex
+    print("\n🏆 Winner: \(playerNames[winnerIndex])")
+
+    print("\nFinal chips:")
+    for (i, p) in engine.players.enumerated() {
+        print("  \(playerNames[i]) → \(chipString(p.chips))")
+    }
 }
 
 // ── Entry point ─────────────────────────────────────────────
@@ -210,94 +192,74 @@ let seed: UInt64 = useFixedSeed ? 42 : UInt64.random(in: .min ... .max)
 
 var engine = ScatEngine(
     seed: seed,
-    players: ["Nathan", "Chloe"],
+    playerCount: playerNames.count,
     startingChips: 3
 )
 
 _ = engine.startGame()
 
-// Track whether we already printed a knock banner this round
 var knockBannerShown = false
 
 while engine.isActive {
     clearScreen()
 
-    // Final-round banner
     if engine.isKnocked && !knockBannerShown {
-        printFinalRoundBanner()
+        banner("⚑ FINAL ROUND ⚑")
         knockBannerShown = true
     }
 
     printTurnDisplay(engine: engine)
     print("")
 
-    // Snapshot before the move
     let beforePlayers = snapshotPlayers(engine)
 
-    // ── Main menu ────────────────────────────────────────────
     print("What would you like to do?")
-    var menuOptions: [(key: String, label: String)] = [("1", "Draw a card")]
+    var menuOptions: [(key: String, label: String)] = [
+        ("1", "Draw a card")
+    ]
+
     if !engine.isKnocked {
         menuOptions.append(("2", "Knock"))
     }
-    let mainChoice = readChoice(from: menuOptions)
 
-    if mainChoice == "2" {
-        // Knock
-        let move = Move.knock
-        do {
-            try _ = engine.makeMove(move)
-        } catch {
-            print("Error: \(error). Press Enter.")
-            _ = readLine()
-        }
+    let choice = readChoice(from: menuOptions)
+
+    if choice == "2" {
+        _ = try? engine.makeMove(.knock)
     } else {
-        // Draw flow
-        print("")
-        print("Draw from:")
+        print("\nDraw from:")
         let drawChoice = readChoice(from: [
             ("1", "Draw pile"),
-            ("2", "Discard pile  [\(cardString(engine.topOfDiscardPile))]")
+            ("2", "Discard pile")
         ])
+
         let source: DrawSource = drawChoice == "1" ? .drawPile : .discardPile
+        let drawn = source == .drawPile ? engine.topOfDrawPile : engine.topOfDiscardPile
 
-        // Peek at what they're about to draw
-        let drawnCard: Card = source == .drawPile ? engine.topOfDrawPile : engine.topOfDiscardPile
+        print("\nYou drew: \(cardString(drawn))")
 
-        // Show drawn card
-        print("")
-        print("You drew: \(cardString(drawnCard))")
+        let hand = engine.currentPlayer.cards
+        let tempHand = hand + [drawn]
 
-        // Build temporary hand for display (engine hasn't applied move yet,
-        // so we simulate it for the prompt)
-        let currentHand = engine.currentPlayer.cards
-        let tempHand    = currentHand + [drawnCard]
-
-        print("\nYour four-card hand:")
-        for (i, card) in tempHand.enumerated() {
-            print("  \(i + 1). \(cardString(card))  (\(Scoring.value(of: card)) pts)")
+        print("\nChoose discard:")
+        for (i, c) in tempHand.enumerated() {
+            print("  \(i + 1). \(cardString(c))")
         }
-        print("")
 
         let discardIdx = readIntInRange(lo: 1, hi: tempHand.count,
-                                        prompt: "Which card would you like to discard? (1–\(tempHand.count)):")
-        let discardCard = tempHand[discardIdx - 1]
+                                        prompt: "Card to discard:")
 
-        let move = Move.drawAndDiscard(source: source, discard: discardCard)
-        do {
-            try _ = engine.makeMove(move)
-        } catch {
-            print("Error: \(error). Press Enter.")
-            _ = readLine()
-        }
+        let discard = tempHand[discardIdx - 1]
+
+        _ = try? engine.makeMove(.drawAndDiscard(source: source, discard: discard))
     }
 
-    // ── Detect round end ─────────────────────────────────────
     let afterPlayers = snapshotPlayers(engine)
+
     if roundEnded(before: beforePlayers, after: afterPlayers) {
-        knockBannerShown = false
         clearScreen()
         printRoundSummary(engine: engine, before: beforePlayers)
+        knockBannerShown = false
     }
 }
 

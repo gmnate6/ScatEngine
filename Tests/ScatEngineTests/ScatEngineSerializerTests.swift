@@ -2,7 +2,7 @@ import Testing
 @testable import ScatEngine
 
 func makeEngine() -> ScatEngine {
-    let engine = ScatEngine(seed: 1234, players: ["p0", "p1", "p2"], startingChips: 3)
+    let engine = ScatEngine(seed: 1234, playerCount: 3, startingChips: 3)
     _ = engine.startGame()
     return engine
 }

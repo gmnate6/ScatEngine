@@ -6,17 +6,17 @@ struct KnockingLogicTests {
     func handleScat_oneHasScat() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 31 (scat)
+        var p0 = Player(chips: 3)         // score: 31 (scat)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .jack, suit: .hearts))  // 10
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 15
+        var p1 = Player(chips: 3)         // score: 15
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .hearts)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8
+        var p2 = Player(chips: 3)         // score: 8
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -34,17 +34,17 @@ struct KnockingLogicTests {
     func handleScat_manyHaveScat() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 31 (scat)
+        var p0 = Player(chips: 3)         // score: 31 (scat)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .jack, suit: .hearts))  // 10
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 31 (scat)
+        var p1 = Player(chips: 3)         // score: 31 (scat)
         p1.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p1.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p1.addCard(Card(rank: .jack, suit: .hearts))  // 10
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8
+        var p2 = Player(chips: 3)         // score: 8
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -62,17 +62,17 @@ struct KnockingLogicTests {
     func handleKnockResolution_knockerHasHighestOneHasLowest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 30 (highest)
+        var p0 = Player(chips: 3)         // score: 30 (highest)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .nine, suit: .hearts))  // 9
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 15
+        var p1 = Player(chips: 3)         // score: 15
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .hearts)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8 (lowest)
+        var p2 = Player(chips: 3)         // score: 8 (lowest)
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -94,17 +94,17 @@ struct KnockingLogicTests {
     func handleKnockResolution_knockerHasHighestTwoHasLowest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 30 (highest)
+        var p0 = Player(chips: 3)         // score: 30 (highest)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .nine, suit: .hearts))  // 9
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 8 (lowest)
+        var p1 = Player(chips: 3)         // score: 8 (lowest)
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .spades)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8 (lowest)
+        var p2 = Player(chips: 3)         // score: 8 (lowest)
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -126,17 +126,17 @@ struct KnockingLogicTests {
     func handleKnockResolution_resolveKnock_knockerHasLowest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 30 (highest)
+        var p0 = Player(chips: 3)         // score: 30 (highest)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .nine, suit: .hearts))  // 9
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 15
+        var p1 = Player(chips: 3)         // score: 15
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .hearts)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
         
-        var p2 = Player(name: "p2", chips: 3)         // score: 8 (lowest)
+        var p2 = Player(chips: 3)         // score: 8 (lowest)
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -158,17 +158,17 @@ struct KnockingLogicTests {
     func handleKnockResolution_knockerTiedForLowest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 30 (highest)
+        var p0 = Player(chips: 3)         // score: 30 (highest)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .nine, suit: .hearts))  // 9
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 8 (lowest)
+        var p1 = Player(chips: 3)         // score: 8 (lowest)
         p1.addCard(Card(rank: .eight, suit: .spades)) // 8
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .eight, suit: .clubs))  // 8
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8 (lowest)
+        var p2 = Player(chips: 3)         // score: 8 (lowest)
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8

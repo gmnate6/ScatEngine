@@ -4,7 +4,7 @@ import Testing
 struct ScatEngineTests {
     @Test
     func initTest() {
-        let engine = ScatEngine(seed: 123, players: ["p0", "p1", "p2", "p3"])
+        let engine = ScatEngine(seed: 123, playerCount: 4)
         #expect(throws: Never.self) {
             try validate(gameState: engine.gameState)
         }
@@ -12,7 +12,7 @@ struct ScatEngineTests {
     
     @Test
     func startGameTest() {
-        let engine = ScatEngine(seed: 123, players: ["p0", "p1", "p2", "p3"])
+        let engine = ScatEngine(seed: 123, playerCount: 4)
         _ = engine.startGame()
         #expect(throws: Never.self) {
             try validate(gameState: engine.gameState)
@@ -21,7 +21,7 @@ struct ScatEngineTests {
     
     @Test
     func legalMovesTest() {
-        let engine = ScatEngine(seed: 123, players: ["p0", "p1", "p2", "p3"])
+        let engine = ScatEngine(seed: 123, playerCount: 4)
         _ = engine.startGame()
         let moves = engine.legalMoves()
         
@@ -33,7 +33,7 @@ struct ScatEngineTests {
     
     @Test
     func makeMoveTest() {
-        let engine = ScatEngine(seed: 123, players: ["p0", "p1"], startingChips: 1)
+        let engine = ScatEngine(seed: 123, playerCount: 2, startingChips: 1)
         _ = engine.startGame()
         
         // p0

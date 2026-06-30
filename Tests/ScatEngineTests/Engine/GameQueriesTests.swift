@@ -5,8 +5,8 @@ struct GameQueriesTests {
     @Test
     func isActiveTest() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
         #expect(GameQueries.isActive(gameState: gameState))
@@ -18,8 +18,8 @@ struct GameQueriesTests {
     @Test
     func alivePlayerIndicesTest() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
         #expect(GameQueries.alivePlayerIndices(in: gameState).count == 2)
@@ -35,8 +35,8 @@ struct GameQueriesTests {
     @Test
     func alivePlayerCountTest() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
         #expect(GameQueries.alivePlayerCount(in: gameState) == 2)
@@ -51,8 +51,8 @@ struct GameQueriesTests {
     @Test
     func nextAlivePlayerTest_1() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
         #expect(GameQueries.nextAlivePlayerIndex(gameState: gameState, currentIndex: 0) == 1)
@@ -64,8 +64,8 @@ struct GameQueriesTests {
     @Test
     func nextAlivePlayerTest_2() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
 
         #expect(GameQueries.nextAlivePlayerIndex(gameState: gameState, currentIndex: 0) == 1)
@@ -78,17 +78,17 @@ struct GameQueriesTests {
     func hasScatTest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 31 (scat)
+        var p0 = Player(chips: 3)                     // score: 31 (scat)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .jack, suit: .hearts))  // 10
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 15
+        var p1 = Player(chips: 3)                     // score: 15
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .hearts)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8
+        var p2 = Player(chips: 3)                     // score: 8
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8
@@ -102,17 +102,17 @@ struct GameQueriesTests {
     func scattersIndicesTest() {
         let rng = SeededGenerator(seed: 123)
         
-        var p0 = Player(name: "p0", chips: 3)         // score: 31 (scat)
+        var p0 = Player(chips: 3)                     // score: 31 (scat)
         p0.addCard(Card(rank: .ace, suit: .hearts))   // 11
         p0.addCard(Card(rank: .ten, suit: .hearts))   // 10
         p0.addCard(Card(rank: .jack, suit: .hearts))  // 10
 
-        var p1 = Player(name: "p1", chips: 3)         // score: 15
+        var p1 = Player(chips: 3)                     // score: 15
         p1.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p1.addCard(Card(rank: .seven, suit: .hearts)) // 7
         p1.addCard(Card(rank: .seven, suit: .clubs))  // 7
 
-        var p2 = Player(name: "p2", chips: 3)         // score: 8
+        var p2 = Player(chips: 3)                     // score: 8
         p2.addCard(Card(rank: .eight, suit: .spades)) // 8
         p2.addCard(Card(rank: .eight, suit: .hearts)) // 8
         p2.addCard(Card(rank: .eight, suit: .clubs))  // 8

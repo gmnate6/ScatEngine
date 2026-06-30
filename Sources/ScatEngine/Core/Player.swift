@@ -1,5 +1,6 @@
+import Foundation
+
 public struct Player: Codable {
-    public let name: String
     public internal(set) var cards: [Card]
 
     public internal(set) var chips: Int {
@@ -14,8 +15,7 @@ public struct Player: Codable {
         chips > 0
     }
 
-    init(name: String, chips: Int) {
-        self.name = name
+    init(chips: Int) {
         self.cards = []
         self.chips = chips
     }

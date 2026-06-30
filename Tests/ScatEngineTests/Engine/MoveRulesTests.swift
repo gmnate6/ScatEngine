@@ -5,8 +5,8 @@ struct MoveRulesTests {
     @Test
     func canKnockTest() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         #expect(MoveRules.canKnock(gameState: gameState))
@@ -19,8 +19,8 @@ struct MoveRulesTests {
     @Test
     func legalDiscardsTest() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         dealDeck(gameState: &gameState)
@@ -36,8 +36,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_gameNotStarted() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         let gameState = GameState(rng: rng, players: [p0, p1])
         
         let move: Move = .knock
@@ -49,8 +49,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_gameOver() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         _ = GameFlow.startGame(gameState: &gameState)
@@ -65,8 +65,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_alreadyKnocked() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         _ = GameFlow.startGame(gameState: &gameState)
@@ -81,8 +81,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_invalidDiscard() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         _ = GameFlow.startGame(gameState: &gameState)
@@ -105,8 +105,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_validKnockMove() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         _ = GameFlow.startGame(gameState: &gameState)
@@ -120,8 +120,8 @@ struct MoveRulesTests {
     @Test
     func moveValidation_validDrawAndDiscardMove() {
         let rng = SeededGenerator(seed: 123)
-        let p0 = Player(name: "p0", chips: 1)
-        let p1 = Player(name: "p1", chips: 1)
+        let p0 = Player(chips: 1)
+        let p1 = Player(chips: 1)
         var gameState = GameState(rng: rng, players: [p0, p1])
         
         _ = GameFlow.startGame(gameState: &gameState)
