@@ -1,4 +1,4 @@
-public enum GameEvent: Equatable {
+public enum GameEvent: Codable, Equatable {
     // Setup
     case gameStarted
     case roundStarted
@@ -18,7 +18,7 @@ public enum GameEvent: Equatable {
     case roundEnded
     case gameEnded(winnerIndex: Int)
    
-    public enum KnockResults: Equatable {
+    public enum KnockResults: Codable, Equatable {
         case knockerLost
         case knockerWon(losers: [Int])
     }
