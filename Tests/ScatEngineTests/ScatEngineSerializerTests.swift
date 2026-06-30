@@ -7,7 +7,7 @@ func makeEngine() -> ScatEngine {
     return engine
 }
 
-struct ScatEngine_PersistenceTests {
+struct ScatEngineSerializerTests {
     @Test
     func encodeDecode_roundTrip_preservesState() throws {
         let engine = makeEngine()
@@ -19,13 +19,37 @@ struct ScatEngine_PersistenceTests {
         _ = try engine.makeMove(move)
         
         // Save + load round trip
-        let data = try engine.makeSaveData()
-        let decoded = try ScatEngine(data: data)
+        let data = try ScatEngineSerializer.encode(engine)
+        let decoded = try ScatEngineSerializer.decode(data)
         
         // Compare deterministic hashes (single source of truth)
-        let originalHash = engine.stateHash()
-        let decodedHash = decoded.stateHash()
+        let originalHash = ScatEngineSerializer.hash(engine)
+        let decodedHash = ScatEngineSerializer.hash(decoded)
         
         #expect(originalHash == decodedHash)
+    }
+    
+    @Test
+    func hash_isDeterministic() throws {
+        let engine = makeEngine()
+
+        #expect(
+            ScatEngineSerializer.hash(engine) ==
+            ScatEngineSerializer.hash(engine)
+        )
+    }
+    
+    @Test
+    func hash_changesWhenStateChanges() throws {
+        let engine = makeEngine()
+
+        let before = ScatEngineSerializer.hash(engine)
+
+        let move = engine.legalMoves().first!
+        _ = try engine.makeMove(move)
+
+        let after = ScatEngineSerializer.hash(engine)
+
+        #expect(before != after)
     }
 }

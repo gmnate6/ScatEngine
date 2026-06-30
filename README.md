@@ -1,4 +1,4 @@
-# ScatEngine
+# ScatEngine - v2.0.0
 
 A deterministic, rules-complete Swift game engine for **Scat**, a multiplayer card game where players compete to build the best three-card hand of a single suit and race to 31.
 
@@ -7,7 +7,7 @@ ScatEngine is designed to be:
 - **Deterministic** (seeded RNG)
 - UI-agnostic (no rendering logic)
 - Safe via strong invariants and precondition checks
-- Replayable via event streams and save files
+- Replayable via deterministic event streams and serialized game state
 
 ---
 
@@ -21,7 +21,7 @@ ScatEngine is designed to be:
 - [Game Flow](#game-flow)
 - [Moves](#moves)
 - [Scoring](#scoring)
-- [Saving & Loading](#saving--loading)
+- [Encoding & Decoding](#encoding--decoding)
 - [Design Goals](#design-goals)
 
 ---
@@ -65,7 +65,7 @@ Add the engine as a Swift package dependency (example):
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-repo/ScatEngine", from: "1.0.0")
+    .package(url: "https://github.com/gmnate6/ScatEngine", from: "2.0.0")
 ]
 ````
 
@@ -198,24 +198,24 @@ Scoring.isScat(player: player) // == 31
 
 ---
 
-## Saving & Loading
+## Encoding & Decoding
 
 ### Encode Game State
 
 ```swift
-let data = try engine.makeSaveData()
+let data = try ScatEngineSerializer.encode(engine)
 ```
 
 ### Restore Game
 
 ```swift
-let engine = try ScatEngine(data: savedData)
+let engine = try ScatEngineSerializer.decode(data)
 ```
 
 ### State Hash (Integrity Check)
 
 ```swift
-let hash = engine.stateHash()
+let hash = ScatEngineSerializer.hash(engine)
 ```
 
 Used for:

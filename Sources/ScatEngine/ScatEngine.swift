@@ -104,6 +104,11 @@ public class ScatEngine {
         gameState = GameState(rng: SeededGenerator(seed: seed), players: playerObjs)
     }
     
+    init(gameState: GameState) throws {
+        try validate(gameState: gameState)
+        self.gameState = gameState
+    }
+    
     public func startGame() -> [GameEvent] {
         precondition(!gameState.isStarted, "Must call startGame() first")
         return GameFlow.startGame(gameState: &gameState)
